@@ -1,0 +1,3 @@
+[submodule "grafel"]
+	path = grafel
+	url = https://github.com/SpamX-dev/grafel.git

@@ -1,0 +1,6 @@
+/artifacts/
+/plugin/node_modules/
+/plugin/dist/
+/plugin/out/
+/plugin/.vscode-test/
+/plugin/*.vsix
