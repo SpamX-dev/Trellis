@@ -1,6 +1,6 @@
 # Trellis
 
-Проект предоставляет анализ репозиториев и их связанности через семантический граф заний
+Система управления семантически связанными инженерными знаниями и трассировки влияния изменений от требований и архитектурных решений до задач, репозиториев, коммитов и проверок.
 
 ## Ограничения
 
@@ -8,7 +8,7 @@
 
 ## Что реально содержит
 
-База знаний сожержит ддокументы которые построены агентами и соеденены семетической связью.
+База знаний содержит семантический граф инженерного знания. Документы являются типизированными представлениями частей этого графа.
 Т.о. вся БЗ связана в единый граф и для добавления документов в БЗ нужно описать семантику связи с другими документами.
 
 ## Как это работает
@@ -42,6 +42,52 @@
 Когда требование сфоромировано, оно разложится в граф и установит влияние, можно провести трассировку и выяснить затрагиваемые цепочки.
 Тогда будет сразу видно что нужно менять и где.
 
+
+```
+Operator intent
+      │
+      ▼
+Agent + Skill
+      │
+      ▼
+Semantic ChangeSet
+      │
+      ▼
+Knowledge Graph draft
+      │
+      ├────> Document rendering
+      │
+      ├────> Graph diff
+      │
+      └────> Impact analysis
+               │
+               ▼
+          Human approval
+               │
+               ▼
+       New Knowledge State
+```
+
+Практически весь основной workflow вращается вокруг:
+
+```
+Current Knowledge State
+          │
+          │ intent
+          ▼
+      ChangeSet
+          │
+          ├── add node
+          ├── modify node
+          ├── remove node
+          ├── add relation
+          ├── remove relation
+          └── justification / provenance
+          │
+          ▼
+      Draft State
+```
+
 ## Полная цепочка ценности
 
 ```text
@@ -51,9 +97,28 @@ Requirement ──refines──> Architecture change (module)
                                                  │
                                     ┌────────────┼────────────┐
                                     │            │            │
-                              Coding agent   Commit      Review agent
+                                Coding agent - Commit - Review agent
                                     │            │            │
                                     └──produces──┴──links─────┘
                                                  │
-                                          Task + Code = verified link
+                                           verified link
 ```
+
+## Обобщенный состав базы знаний
+
+- Sematantic
+  - Document type
+    - Node types
+      - relation types
+    - relation types
+- Renderer
+  - Node renerers
+  - Document renderers
+- Documents
+  - Nodes
+    - Relations
+  - Relations
+
+## Семантика
+
+Семантика изначально рождается из Archimate, далее расширяется тем что нам действительно нужно.
