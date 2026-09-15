@@ -1,0 +1,26 @@
+/* Представление стартовой вкладки. Использует цвета и шрифты темы редактора. */
+body { margin: 0; color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
+main { max-width: 760px; margin: 0 auto; padding: 44px 32px; }
+header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+.brand { font-weight: 700; letter-spacing: .16em; }
+.version, .intro, footer, .path, .empty p { color: var(--vscode-descriptionForeground); }
+.version { border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border)); padding: 4px 9px; border-radius: 12px; }
+h1 { font-size: 30px; font-weight: 600; margin: 0 0 12px; }
+.intro { margin-bottom: 32px; font-size: 15px; }
+section { border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border)); border-radius: 8px; padding: 24px; }
+.section-heading { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+h2 { font-size: 15px; margin: 0; }
+.count { background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); border-radius: 10px; padding: 1px 7px; }
+ul { list-style: none; margin: 0 0 24px; padding: 0; }
+.folder { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--vscode-widget-border, var(--vscode-panel-border)); }
+.folder > div { min-width: 0; }
+.folder-icon { color: var(--vscode-textLink-foreground); font-size: 24px; }
+h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.path { margin: 0; font-family: var(--vscode-editor-font-family); font-size: 12px; overflow-wrap: anywhere; }
+.empty { padding: 16px 0 24px; }
+.empty p { line-height: 1.6; margin: 8px 0 0; }
+.button { display: inline-block; padding: 8px 14px; border: 1px solid var(--vscode-contrastBorder, transparent); border-radius: 3px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); text-decoration: none; }
+.button:hover { background: var(--vscode-button-hoverBackground); }
+.button:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 3px; }
+footer { margin-top: 20px; line-height: 1.6; }
+@media (max-width: 480px) { main { padding: 24px 16px; } section { padding: 16px; } h1 { font-size: 24px; } }

@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Trellis: compile",
+      "type": "npm",
+      "script": "compile",
+      "path": "plugin",
+      "problemMatcher": "$tsc"
+    }
+  ]
+}

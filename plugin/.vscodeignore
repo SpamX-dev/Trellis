@@ -1,0 +1,8 @@
+**
+!package.json
+!README.md
+!CHANGELOG.md
+!dist/extension.js
+!dist/ide/*.js
+!media/trellis.svg
+!media/home.css

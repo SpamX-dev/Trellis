@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Trellis",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/plugin",
+        "--disable-extensions",
+        "${workspaceFolder}"
+      ],
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null
+      },
+      "outFiles": ["${workspaceFolder}/plugin/dist/**/*.js"],
+      "preLaunchTask": "Trellis: compile"
+    }
+  ]
+}
