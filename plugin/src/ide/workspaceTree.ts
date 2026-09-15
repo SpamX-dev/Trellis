@@ -1,32 +1,36 @@
 import * as vscode from 'vscode';
+import { WorkspaceProjects } from './workspaceProjects';
 
 /**
  * Представляет папки текущего workspace средствами штатного дерева редактора.
- * Не читает содержимое файлов и не хранит копию списка: VS Code остаётся
- * источником данных. Владеет подпиской на изменения workspace и освобождает её.
+ * Получает порядок, выбор и диагностику из общего контекста WorkspaceProjects.
+ * Не читает файлы и не владеет контекстом; освобождает только свою подписку.
  */
 export class WorkspaceTree implements vscode.TreeDataProvider<vscode.TreeItem>, vscode.Disposable {
   private readonly changes = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this.changes.event;
-  private readonly workspaceListener = vscode.workspace.onDidChangeWorkspaceFolders(() => this.changes.fire());
+  private readonly projectListener: vscode.Disposable;
+
+  constructor(private readonly projects: WorkspaceProjects) {
+    this.projectListener = projects.onDidChange(() => this.changes.fire());
+  }
 
   getTreeItem(item: vscode.TreeItem): vscode.TreeItem {
     return item;
   }
 
   getChildren(): vscode.TreeItem[] {
-    const home = new vscode.TreeItem('Открыть Trellis');
-    home.id = 'home';
-    home.iconPath = new vscode.ThemeIcon('home');
-    home.command = { command: 'trellis.openHome', title: 'Открыть Trellis' };
-
-    const folders = (vscode.workspace.workspaceFolders ?? []).map(folder => {
+    const folders = this.projects.projects.map(folder => {
       const item = new vscode.TreeItem(folder.name);
-      item.id = folder.uri.toString();
-      item.resourceUri = folder.uri;
-      item.iconPath = new vscode.ThemeIcon('folder');
-      item.tooltip = folder.uri.scheme === 'file' ? folder.uri.fsPath : folder.uri.toString(true);
-      item.command = { command: 'revealInExplorer', title: 'Показать в проводнике', arguments: [folder.uri] };
+      item.id = folder.uri;
+      item.resourceUri = vscode.Uri.parse(folder.uri);
+      item.iconPath = new vscode.ThemeIcon(folder.access.state === 'available' ? 'folder' : 'warning');
+      const status = `${folder.selected ? 'Выбран · ' : ''}${folder.access.message}`;
+      const accessLabel = { checking: 'Проверка…', available: 'Доступна', unavailable: 'Недоступна', unsupported: 'Анализ недоступен' }[folder.access.state];
+      item.description = `${folder.selected ? 'Выбран · ' : ''}${accessLabel} · ${folder.path}`;
+      item.tooltip = `${folder.name}\n${folder.path}\n${status}\nИндекс: не проиндексирован`;
+      item.accessibilityInformation = { label: `${folder.name}, ${folder.path}, ${status}, не проиндексирован` };
+      item.command = { command: 'trellis.revealProject', title: 'Выбрать проект и показать в Explorer', arguments: [folder.uri] };
       return item;
     });
 
@@ -34,11 +38,13 @@ export class WorkspaceTree implements vscode.TreeDataProvider<vscode.TreeItem>, 
     add.id = 'addFolder';
     add.iconPath = new vscode.ThemeIcon('add');
     add.command = { command: 'workbench.action.addRootFolder', title: 'Добавить папку' };
-    return [home, ...folders, add];
+    const empty = new vscode.TreeItem('Нет папок — добавьте папку проекта');
+    empty.id = 'empty';
+    return [...(folders.length ? folders : [empty]), add];
   }
 
   dispose(): void {
-    this.workspaceListener.dispose();
+    this.projectListener.dispose();
     this.changes.dispose();
   }
 }

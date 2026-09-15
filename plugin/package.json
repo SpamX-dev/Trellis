@@ -2,32 +2,92 @@
   "name": "trellis",
   "displayName": "Trellis",
   "description": "Рабочая область Trellis в VS Code и Cursor.",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "publisher": "spamx-dev",
   "private": true,
   "license": "UNLICENSED",
-  "engines": { "vscode": "^1.100.0" },
-  "categories": ["Other"],
-  "repository": { "type": "git", "url": "https://github.com/SpamX-dev/Trellis.git", "directory": "plugin" },
-  "bugs": { "url": "https://github.com/SpamX-dev/Trellis/issues" },
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SpamX-dev/Trellis.git",
+    "directory": "plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/SpamX-dev/Trellis/issues"
+  },
   "main": "./dist/extension.js",
-  "extensionKind": ["workspace"],
+  "extensionKind": [
+    "workspace"
+  ],
   "capabilities": {
-    "untrustedWorkspaces": { "supported": true },
-    "virtualWorkspaces": { "supported": true }
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": {
+      "supported": true
+    }
   },
   "contributes": {
     "commands": [
-      { "command": "trellis.openHome", "title": "Открыть Trellis", "category": "Trellis", "icon": "$(home)" }
+      {
+        "command": "trellis.openHome",
+        "title": "Открыть Trellis",
+        "category": "Trellis",
+        "icon": "$(home)"
+      },
+      {
+        "command": "trellis.selectProject",
+        "title": "Выбрать проект",
+        "category": "Trellis"
+      },
+      {
+        "command": "trellis.refreshProjects",
+        "title": "Проверить доступность папок",
+        "category": "Trellis",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "trellis.showLog",
+        "title": "Открыть журнал",
+        "category": "Trellis",
+        "icon": "$(output)"
+      }
     ],
     "viewsContainers": {
-      "activitybar": [{ "id": "trellis", "title": "Trellis", "icon": "media/trellis.svg" }]
+      "activitybar": [
+        {
+          "id": "trellis",
+          "title": "Trellis",
+          "icon": "media/trellis.svg"
+        }
+      ]
     },
     "views": {
-      "trellis": [{ "id": "trellis.workspace", "name": "Рабочая область" }]
+      "trellis": [
+        {
+          "id": "trellis.workspace",
+          "name": "Рабочая область"
+        }
+      ]
     },
     "menus": {
-      "view/title": [{ "command": "trellis.openHome", "when": "view == trellis.workspace", "group": "navigation" }]
+      "view/title": [
+        {
+          "command": "trellis.refreshProjects",
+          "when": "view == trellis.workspace",
+          "group": "navigation@1"
+        },
+        {
+          "command": "trellis.showLog",
+          "when": "view == trellis.workspace",
+          "group": "navigation@2"
+        }
+      ]
     }
   },
   "scripts": {
@@ -35,7 +95,7 @@
     "check": "tsc -p . --noEmit",
     "watch": "tsc -p . --watch",
     "vscode:prepublish": "npm run compile",
-    "package": "vsce package --no-dependencies --out trellis-0.1.0.vsix",
+    "package": "vsce package --no-dependencies",
     "test": "npm run compile && tsc -p tsconfig.test.json && node test/run.cjs"
   },
   "devDependencies": {
@@ -43,6 +103,7 @@
     "@types/vscode": "1.100.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "4.0.0",
+    "playwright-core": "1.63.0",
     "typescript": "5.9.3"
   }
 }

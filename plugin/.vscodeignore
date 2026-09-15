@@ -3,6 +3,9 @@
 !README.md
 !CHANGELOG.md
 !dist/extension.js
-!dist/ide/*.js
+!dist/ide/folderAccess.js
+!dist/ide/homeHtml.js
+!dist/ide/homePanel.js
+!dist/ide/workspaceProjects.js
+!dist/ide/workspaceTree.js
 !media/trellis.svg
-!media/home.css

@@ -21,7 +21,7 @@ Trellis/
 - Fork движка: https://github.com/SpamX-dev/grafel
 - Upstream движка: https://github.com/cajasmota/grafel
 
-Архитектурные границы описаны в [module.md](module.md) и документах компонентов. Первая версия расширения работает самостоятельно: боковая панель и стартовая вкладка отображают папки workspace. Grafel, индексация и MCP в версию 0.1.0 не включены.
+Архитектурные границы описаны в [module.md](module.md) и документах компонентов. Версия 0.2.1 реализует первый этап: папки Explorer, выбор проекта по URI, проверку доступа и журнал в боковой панели. Вкладка остаётся пустой до подключения Grafel; индексация и MCP относятся к следующим этапам.
 
 ## План MVP
 
@@ -42,7 +42,7 @@ npm run check
 npm run package
 ```
 
-Результат: `plugin/trellis-0.1.0.vsix`. Установите его через **Extensions: Install from VSIX…** в VS Code / Cursor. Инициализация Grafel для этой сборки не требуется. Инструкции запуска через F5 и интеграционных проверок находятся в [plugin/README.md](plugin/README.md).
+Результат: `plugin/trellis-0.2.1.vsix`. Установите его через **Extensions: Install from VSIX…** в VS Code / Cursor. Инициализация Grafel для этой сборки не требуется. Инструкции запуска через F5 и интеграционных проверок находятся в [plugin/README.md](plugin/README.md).
 
 ## Получение исходников
 
