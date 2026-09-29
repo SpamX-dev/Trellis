@@ -8,38 +8,17 @@ nodes:
         from: root
         to: product
 
-  - type: product
-    propose: Зафиксировать назначение продукта, ожидаемые результаты, участников и границу рассматриваемой работы.
+  - type: layer
     required:
       - id: string
-      - name: string
-      - purpose: string # Цель продукта
-      - outcomes: string # Ожидаемые результаты
-      - in_scope: string # В рамках рассматриваемой работы
-      - out_of_scope: string # Вне рамок рассматриваемой работы
-      - assumptions: string # Предположения
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-      - external_dependencies: string # Внешние зависимости
-    relations:
+        name: Product
+    relations:      
       - type: contains
-        from: product
-        to: user-story
+        from: layer
+        to: product
       - type: contains
-        from: product
-        to: functional-requirement
-      - type: contains
-        from: product
-        to: non-functional-requirement
-      - type: contains
-        from: product
-        to: business-rule
-      - type: contains
-        from: product
-        to: business-process
-      - type: contains
-        from: product
-        to: business-object
+        from: layer
+        to: compliance-requirement
 
   - type: group
     propose: Группировка сущностей по общему признаку.
@@ -51,6 +30,10 @@ nodes:
     relations:
       - type: contains
         from: group
+        to: group
+      # Product
+      - type: contains
+        from: group
         to: user-story
       - type: contains
         from: group
@@ -70,128 +53,8 @@ nodes:
       - type: contains
         from: group
         to: actor
+      # Compliance
       - type: contains
         from: group
-        to: group
-
-  - type: actor
-    propose: Пользовательская или системная роль в контексте продукта и его процессов.
-    required:
-      - id: string
-      - name: string
-      - kind: string # Вид роли
-      - responsibility: string # Обязанности роли
-      - participation_boundary: string # Граница участия роли в продукте
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-    relations:
-      - type: contains
-        from: user-story
-        to: actor
-      - type: contains
-        from: process-step
-        to: actor
-
-  - type: user-story
-    propose: Цель и ожидаемая польза, сформулированные от лица роли.
-    required:
-      - id: string
-      - name: string
-      - actor_ref: string # Ссылка на роль, от лица которой сформулирована цель
-      - goal: string # Цель пользователя
-      - benefit: string # Ожидаемая польза
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-    relations:
-      - type: contains
-        from: user-story
-        to: functional-requirement
-
-  - type: non-functional-requirement
-    propose: Критерий качества и ограничения нефункционального характера, применимые к продукту или его частям.
-    required:
-      - id: string
-      - name: string
-      - category: string # Категория требования
-      - statement: string # Формулировка требования
-      - metric: string # Критерий проверки
-      - target_value: string # Целевое значение
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-      - verification_method: string
-
-  - type: functional-requirement
-    propose: Функциональное требование продукта, описанное как необходимое поведение системы.
-    required:
-      - id: string
-      - name: string
-      - statement: string # Формулировка требования
-      - trigger: string # Триггер
-      - behavior: string # Поведение
-      - outcome: string # Результат
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-    relations:
-      - type: contains
-        from: functional-requirement
-        to: business-rule
-
-  - type: business-rule
-    propose: Правило или ограничение, влияющее на процессы, роли и требования.
-    required:
-      - id: string
-      - name: string
-      - statement: string # Формулировка правила
-      - area: string # Область действия правила
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-    relations:
-      - type: contains
-        from: business-rule
-        to: functional-requirement
-
-  - type: business-process
-    propose: Последовательность шагов, приводящая к значимому результату в рамках продукта.
-    required:
-      - id: string
-      - name: string
-      - purpose: string # Цель процесса
-      - result: string # Результат процесса
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-    relations:
-      - type: contains
-        from: business-process
-        to: process-step
-
-  - type: process-step
-    propose: Шаг бизнес-процесса с указанием роли, действия и результата.
-    required:
-      - id: string
-      - name: string
-      - step_number: int # Номер шага
-      - action: string # Действие
-      - result: string # Результат шага
-      - actor_ref: string # Ссылка на роль
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-    next-steps:
-      - to: process-step
-        rule: business-rule
-    relations:
-      - type: read
-        from: process-step
-        to: business-object
-      - type: write
-        from: process-step
-        to: business-object
-  
-  - type: business-object
-    propose: Сущность предметной области, с которой работают процессы и правила.
-    required:
-      - id: string
-      - name: string
-      - description: string # Описание объекта
-      - attributes: json # Атрибуты объекта
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
+        to: compliance-requirement
+      

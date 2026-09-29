@@ -1,0 +1,4 @@
+# Фрагменты повторяют узлы из ../../model.yaml, кроме root.
+model: trellis.product.compliance
+source_model: ../../model.yaml
+fragments: [compliance.yaml]

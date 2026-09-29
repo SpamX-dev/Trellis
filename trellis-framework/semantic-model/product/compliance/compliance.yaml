@@ -1,0 +1,28 @@
+nodes:
+  - type: compliance-requirement
+    propose: Ограничение, накладываемое на продукт регулятором, законом, стандартом или внутренней политикой, вместе с обязательной процедурой подтверждения соответствия.
+    required:
+      - id: string
+      - name: string
+      - kind: [prohibition, conditional-obligation] # Вид ограничения: prohibition (запрет) или conditional-obligation (условное обязательство)
+      - statement: string # Формулировка ограничения
+      - area: string # Область действия ограничения
+    non_required:
+      - trigger: string # Условие вступления ограничения в силу; задаётся для условных обязательств, у запрета отсутствует
+      - source: string # Источник ограничения: закон, регламент, стандарт, политика
+      - summary: string # Краткое описание для поиска и навигации
+    relations:
+      - type: verified-by
+        from: compliance-requirement
+        to: verification-procedure
+
+  - type: verification-procedure
+    propose: Обязательная процедура проверки соответствия, проводимая назначенной стороной; без неё ограничение комплаенс не считается выполненным.
+    required:
+      - id: string
+      - name: string
+      - purpose: string # Что подтверждает проверка
+      - authority: string # Сторона, проводящая проверку: процесс, портал или орган
+      - result: string # Исход процедуры: подтверждение соответствия или отказ
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации

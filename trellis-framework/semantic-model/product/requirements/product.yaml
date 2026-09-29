@@ -31,39 +31,12 @@ nodes:
       - type: contains
         from: product
         to: business-object
-
-  - type: group
-    propose: Группировка сущностей по общему признаку.
-    required:
-      - id: string
-      - name: string
-    non_required:
-      - summary: string # Краткое описание для поиска и навигации
-    relations:
       - type: contains
-        from: group
-        to: user-story
+        from: product
+        to: compliance-requirement
       - type: contains
-        from: group
-        to: functional-requirement
-      - type: contains
-        from: group
-        to: non-functional-requirement
-      - type: contains
-        from: group
-        to: business-rule
-      - type: contains
-        from: group
-        to: business-process
-      - type: contains
-        from: group
-        to: business-object
-      - type: contains
-        from: group
-        to: actor
-      - type: contains
-        from: group
-        to: group
+        from: product
+        to: compliance-mapping
 
   - type: actor
     propose: Пользовательская или системная роль в контексте продукта и его процессов.
