@@ -1,0 +1,14 @@
+nodes:
+  - type: business-rule
+    propose: Правило или ограничение, влияющее на процессы, роли и требования.
+    required:
+      - id: string
+      - name: string
+      - statement: string # Формулировка правила
+      - area: string # Область действия правила
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+    relations:
+      - type: contains
+        from: business-rule
+        to: functional-requirement

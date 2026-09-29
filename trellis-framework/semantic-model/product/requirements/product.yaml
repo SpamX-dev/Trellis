@@ -1,0 +1,84 @@
+nodes:
+  - type: product
+    propose: Зафиксировать назначение продукта, ожидаемые результаты, участников и границу рассматриваемой работы.
+    required:
+      - id: string
+      - name: string
+      - purpose: string # Цель продукта
+      - outcomes: string # Ожидаемые результаты
+      - in_scope: string # В рамках рассматриваемой работы
+      - out_of_scope: string # Вне рамок рассматриваемой работы
+      - assumptions: string # Предположения
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+      - external_dependencies: string # Внешние зависимости
+    relations:
+      - type: contains
+        from: product
+        to: user-story
+      - type: contains
+        from: product
+        to: functional-requirement
+      - type: contains
+        from: product
+        to: non-functional-requirement
+      - type: contains
+        from: product
+        to: business-rule
+      - type: contains
+        from: product
+        to: business-process
+      - type: contains
+        from: product
+        to: business-object
+
+  - type: group
+    propose: Группировка сущностей по общему признаку.
+    required:
+      - id: string
+      - name: string
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+    relations:
+      - type: contains
+        from: group
+        to: user-story
+      - type: contains
+        from: group
+        to: functional-requirement
+      - type: contains
+        from: group
+        to: non-functional-requirement
+      - type: contains
+        from: group
+        to: business-rule
+      - type: contains
+        from: group
+        to: business-process
+      - type: contains
+        from: group
+        to: business-object
+      - type: contains
+        from: group
+        to: actor
+      - type: contains
+        from: group
+        to: group
+
+  - type: actor
+    propose: Пользовательская или системная роль в контексте продукта и его процессов.
+    required:
+      - id: string
+      - name: string
+      - kind: string # Вид роли
+      - responsibility: string # Обязанности роли
+      - participation_boundary: string # Граница участия роли в продукте
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+    relations:
+      - type: contains
+        from: user-story
+        to: actor
+      - type: contains
+        from: process-step
+        to: actor

@@ -1,0 +1,15 @@
+nodes:
+  - type: user-story
+    propose: Цель и ожидаемая польза, сформулированные от лица роли.
+    required:
+      - id: string
+      - name: string
+      - actor_ref: string # Ссылка на роль, от лица которой сформулирована цель
+      - goal: string # Цель пользователя
+      - benefit: string # Ожидаемая польза
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+    relations:
+      - type: contains
+        from: user-story
+        to: functional-requirement

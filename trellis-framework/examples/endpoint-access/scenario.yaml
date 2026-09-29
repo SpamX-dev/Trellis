@@ -1,0 +1,580 @@
+# Условный сквозной сценарий. Источники, решения, пакеты и Evidence не существуют вне примера.
+# Разделы nodes и relations описывают общий набор записей разных этапов, а не один принятый снимок.
+# stages показывает порядок принятия; ссылки id@revision адресуют точные записи в этом файле.
+model_ref: "../../semantic-model/requirements-and-methods.yaml"
+model_version: "0.1"
+illustrative: true
+# Экземпляры типов Framework. Базовые Project, WorkItem, Evidence и GateDecision заданы как fixtures.
+nodes:
+  "SERVICE-DESIGN@1":
+    type: "EngineeringArea"
+    id: "SERVICE-DESIGN"
+    revision: "1"
+    description: "Проектирование сервисов и методов их разработки."
+  "ORDERS@1":
+    type: "Project"
+    id: "ORDERS"
+    revision: "1"
+    description: "Условный Spring-сервис заказов."
+  "LEGACY@1":
+    type: "Project"
+    id: "LEGACY"
+    revision: "1"
+    description: "Условный сервис с неизвестной точкой проверки доступа."
+  "RATIONALE@1":
+    type: "KnowledgeStatement"
+    id: "RATIONALE"
+    revision: "1"
+    statement: "Централизованная политика упрощает обзор общих ограничений доступа; проверки прав на ресурсы требуют отдельного рассмотрения."
+    source_ref: "fixture:research/central-policy@1"
+  "SEC-AUTH@1":
+    type: "Requirement"
+    id: "SEC-AUTH"
+    revision: "1"
+    statement: "Все endpoints, кроме явно принятых публичных исключений, требуют аутентификацию."
+    applicability:
+      target: "Endpoint"
+      conditions: "Все HTTP endpoints рассматриваемого сервиса"
+      boundary: "Инвентаризация маршрутов и принятые публичные исключения"
+    exceptions:
+      -
+        target: "GET /health"
+        reason: "Общедоступная проверка работоспособности без данных приложения"
+        decision_ref: "PUBLIC-REVIEW@1"
+    source_ref: "fixture:standard@1#access"
+  "SEC-AUTH@2":
+    type: "Requirement"
+    id: "SEC-AUTH"
+    revision: "2"
+    statement: "Все endpoints, кроме явно принятых публичных исключений, требуют аутентификацию и авторизацию."
+    applicability:
+      target: "Endpoint"
+      conditions: "Все HTTP endpoints рассматриваемого сервиса"
+      boundary: "Инвентаризация маршрутов и принятые публичные исключения"
+    exceptions:
+      -
+        target: "GET /health"
+        reason: "Общедоступная проверка работоспособности без данных приложения"
+        decision_ref: "PUBLIC-REVIEW@1"
+    source_ref: "fixture:standard@2#access"
+  "AUTHN@1":
+    type: "Control"
+    id: "AUTHN"
+    revision: "1"
+    objective: "Запрос к защищённому endpoint проверяет личность вызывающего."
+    verification_criterion: "Анонимный запрос к защищённому endpoint отклонён."
+  "AUTHZ@1":
+    type: "Control"
+    id: "AUTHZ"
+    revision: "1"
+    objective: "Доступ к операции и ресурсу разрешён только при наличии необходимых прав."
+    verification_criterion: "Запросы без прав отклонены; запросы с нужными правами выполняются в пределах scope."
+  "CENTRAL-ACCESS@1":
+    type: "RealizationPattern"
+    id: "CENTRAL-ACCESS"
+    revision: "1"
+    approach: "Централизованная политика обработки запросов с явным сопоставлением маршрутов и прав; дополнительные проверки доступа к ресурсам при необходимости."
+    applicability: "Spring-приложение с общей цепочкой обработки HTTP запросов."
+    limitations: ["Наличие аутентификации не доказывает проверку прав.", "Нужны инвентаризация маршрутов, проверка обходов и явные публичные исключения."]
+    verification_contract: "Проверить политику, маршруты, исключения и отрицательные/положительные сценарии доступа."
+  "ORDERS-ACCESS@1":
+    type: "ProjectRealization"
+    id: "ORDERS-ACCESS"
+    revision: "1"
+    project_ref: "ORDERS@1"
+    pattern_refs: ["CENTRAL-ACCESS@1"]
+    context: "Java / Spring; перечень маршрутов фиксирован в INVENTORY@1."
+    enforcement_scope: "Конфигурация безопасности приложения и проверки прав на операции/ресурсы."
+    implementation_ref: "fixture:orders/commit-A"
+    owner_area_ref: "SERVICE-DESIGN@1"
+  "ORDERS-ACCESS@2":
+    type: "ProjectRealization"
+    id: "ORDERS-ACCESS"
+    revision: "2"
+    project_ref: "ORDERS@1"
+    pattern_refs: ["CENTRAL-ACCESS@1"]
+    context: "Java / Spring; перечень маршрутов фиксирован в INVENTORY@1."
+    enforcement_scope: "Конфигурация безопасности приложения и проверки прав на операции/ресурсы."
+    implementation_ref: "fixture:orders/commit-B"
+    owner_area_ref: "SERVICE-DESIGN@1"
+  "API-DEVELOPMENT@1":
+    type: "MethodArtifact"
+    id: "API-DEVELOPMENT"
+    revision: "1"
+    kind: "skill"
+    applicability: "Разработка HTTP API с CENTRAL-ACCESS."
+    owner_area_ref: "SERVICE-DESIGN@1"
+    requirement_refs: ["SEC-AUTH@1"]
+    pattern_refs: ["CENTRAL-ACCESS@1"]
+    artifact_ref: "fixture:artifacts/api-development@1.0.0"
+    source_ref: "fixture:methods/commit-A#api-development"
+    verification_refs: ["METHOD-REPORT@1"]
+    package_ref: "fixture:registry/api-development@1.0.0"
+  "API-DEVELOPMENT@2":
+    type: "MethodArtifact"
+    id: "API-DEVELOPMENT"
+    revision: "2"
+    kind: "skill"
+    applicability: "Разработка HTTP API с CENTRAL-ACCESS."
+    owner_area_ref: "SERVICE-DESIGN@1"
+    requirement_refs: ["SEC-AUTH@2"]
+    pattern_refs: ["CENTRAL-ACCESS@1"]
+    artifact_ref: "fixture:artifacts/api-development@2.0.0"
+    source_ref: "fixture:methods/commit-B#api-development"
+    verification_refs: ["METHOD-REPORT@2"]
+    package_ref: "fixture:registry/api-development@2.0.0"
+  "ACCESS-CHECK@1":
+    type: "MethodArtifact"
+    id: "ACCESS-CHECK"
+    revision: "1"
+    kind: "validator"
+    applicability: "Проверка маршрутов по явной матрице разрешённого и запрещённого доступа."
+    owner_area_ref: "SERVICE-DESIGN@1"
+    requirement_refs: ["SEC-AUTH@1"]
+    pattern_refs: ["CENTRAL-ACCESS@1"]
+    artifact_ref: "fixture:checks/access-check@1.0.0"
+    source_ref: "fixture:checks/commit-A"
+    verification_refs: ["METHOD-REPORT@1"]
+  "METHOD-REPORT@1":
+    type: "Evidence"
+    id: "METHOD-REPORT"
+    revision: "1"
+    summary: "Исходные методы проверены относительно SEC-AUTH@1."
+    source_ref: "fixture:evidence/method-report@1"
+    illustrative: true
+  "METHOD-REPORT@2":
+    type: "Evidence"
+    id: "METHOD-REPORT"
+    revision: "2"
+    summary: "В API-DEVELOPMENT@2 проверены выбор политики авторизации, отрицательные/положительные сценарии и публичные исключения."
+    source_ref: "fixture:evidence/method-report@2"
+    illustrative: true
+  "CHECK-REPORT@1":
+    type: "Evidence"
+    id: "CHECK-REPORT"
+    revision: "1"
+    summary: "ACCESS-CHECK@1 умеет проверять явную матрицу прав и исключения; содержимое валидатора менять не требуется."
+    source_ref: "fixture:evidence/check-report@1"
+    illustrative: true
+  "INVENTORY@1":
+    type: "Evidence"
+    id: "INVENTORY"
+    revision: "1"
+    summary: "Полный scope условного примера: GET /orders, GET /orders/{id}, POST /orders и публичный GET /health; обходы цепочки рассмотрены."
+    source_ref: "fixture:evidence/inventory@1"
+    illustrative: true
+  "PROJECT-REPORT@1":
+    type: "Evidence"
+    id: "PROJECT-REPORT"
+    revision: "1"
+    summary: "commit-A проверяет аутентификацию; проверки прав для части операций отсутствуют."
+    source_ref: "fixture:evidence/project-report@1"
+    illustrative: true
+  "PROJECT-REPORT@2":
+    type: "Evidence"
+    id: "PROJECT-REPORT"
+    revision: "2"
+    summary: "Для commit-B по INVENTORY@1 проверены анонимный доступ, недостаточные права, допустимые права, права на ресурс и публичный /health."
+    source_ref: "fixture:evidence/project-report@2"
+    illustrative: true
+  "PLAN@1":
+    type: "ImpactPlan"
+    id: "PLAN"
+    revision: "1"
+    base_revision: "K10"
+    requirement_before_ref: "SEC-AUTH@1"
+    requirement_after_ref: "SEC-AUTH@2"
+    delta: "Добавлена обязательная авторизация; область маршрутов и публичное исключение не изменились."
+    scope: "Методы SERVICE-DESIGN и проекты ORDERS/LEGACY; другие области не оценены."
+    items:
+      -
+        id: "update-skill"
+        action: "update"
+        target_refs: ["API-DEVELOPMENT@1"]
+        owner_area_ref: "SERVICE-DESIGN@1"
+        reason: "Процедура требует проверки личности, но не описывает назначение и проверку прав."
+        impact_paths:
+          -
+            ["SEC-AUTH@2", "AUTHZ@1", "CENTRAL-ACCESS@1", "API-DEVELOPMENT@1"]
+        depends_on: []
+        expected_result: "Новая версия навыка с review и Evidence."
+      -
+        id: "check-validator"
+        action: "check"
+        target_refs: ["ACCESS-CHECK@1"]
+        owner_area_ref: "SERVICE-DESIGN@1"
+        reason: "Нужно подтвердить поддержку матрицы прав для новой нормы."
+        impact_paths:
+          -
+            ["SEC-AUTH@2", "AUTHZ@1", "CENTRAL-ACCESS@1", "ACCESS-CHECK@1"]
+        depends_on: []
+        expected_result: "Обоснованное решение о необходимости изменения валидатора."
+      -
+        id: "update-project"
+        action: "update"
+        target_refs: ["ORDERS-ACCESS@1"]
+        owner_area_ref: "SERVICE-DESIGN@1"
+        reason: "Обновление навыка не добавляет проверки прав в существующее приложение."
+        impact_paths:
+          -
+            ["SEC-AUTH@2", "AUTHZ@1", "CENTRAL-ACCESS@1", "ORDERS-ACCESS@1"]
+        depends_on: ["update-skill", "check-validator"]
+        expected_result: "Новая версия реализации и отдельная оценка project."
+      -
+        id: "investigate-legacy"
+        action: "check"
+        target_refs: ["LEGACY@1"]
+        owner_area_ref: "SERVICE-DESIGN@1"
+        reason: "Нет сведений о механизме защиты и составе endpoints."
+        impact_paths: []
+        depends_on: []
+        expected_result: "Определённая применимость и карта реализации либо явно сохранённый пробел."
+      -
+        id: "retain-rationale"
+        action: "no_change"
+        target_refs: ["RATIONALE@1"]
+        owner_area_ref: "SERVICE-DESIGN@1"
+        reason: "Изменилось обязательство проверки прав; обоснование выбора централизованной политики сохраняет смысл."
+        impact_paths:
+          - ["SEC-AUTH@2", "AUTHZ@1", "CENTRAL-ACCESS@1", "RATIONALE@1"]
+        depends_on: []
+        expected_result: "Сохранить исследование; отдельное изменение его текста не требуется."
+    unknowns:
+      -
+        target_ref: "LEGACY@1"
+        question: "Где обеспечиваются проверки доступа и полон ли перечень endpoints?"
+        plan_item: "investigate-legacy"
+  "CS-REQUIREMENT@1":
+    type: "ChangeSet"
+    id: "CS-REQUIREMENT"
+    revision: "1"
+    base_revision: "K10"
+    proposed_refs: ["SEC-AUTH@2", "PLAN@1"]
+    new_state: "K11"
+  "PUBLIC-REVIEW@1":
+    type: "GateDecision"
+    id: "PUBLIC-REVIEW"
+    revision: "1"
+    decision: "approve"
+    actor: "Условный владелец требования"
+    scope: "Публичный GET /health в исходном и новом требовании."
+    illustrative: true
+  "PLAN-REVIEW@1":
+    type: "GateDecision"
+    id: "PLAN-REVIEW"
+    revision: "1"
+    decision: "approve"
+    actor: "Условный владелец требования"
+    target_refs: ["CS-REQUIREMENT@1", "PLAN@1"]
+    approved_scopes: ["requirement", "impact_plan"]
+    illustrative: true
+  "METHOD-REVIEW@1":
+    type: "GateDecision"
+    id: "METHOD-REVIEW"
+    revision: "1"
+    decision: "approve"
+    actor: "Условный reviewer методов"
+    target_refs: ["API-DEVELOPMENT@2", "ACCESS-CHECK@1", "METHODS-COVERAGE@2"]
+    approved_scopes: ["result_review", "publish_api_development_2.0.0", "methods_coverage"]
+    evidence_refs: ["METHOD-REPORT@2", "CHECK-REPORT@1"]
+    illustrative: true
+  "ADOPTION-REVIEW@1":
+    type: "GateDecision"
+    id: "ADOPTION-REVIEW"
+    revision: "1"
+    decision: "approve"
+    actor: "Условный владелец конфигурации ORDERS"
+    target_refs: ["ORDERS@1", "API-DEVELOPMENT@2", "ACCESS-CHECK@1"]
+    approved_scopes: ["adoption_for_new_runs"]
+    illustrative: true
+  "PROJECT-REVIEW@1":
+    type: "GateDecision"
+    id: "PROJECT-REVIEW"
+    revision: "1"
+    decision: "approve"
+    actor: "Условный reviewer ORDERS"
+    target_refs: ["ORDERS-ACCESS@2", "ORDERS-COVERAGE@2"]
+    approved_scopes: ["project_result", "project_coverage"]
+    evidence_refs: ["PROJECT-REPORT@2", "INVENTORY@1"]
+    illustrative: true
+  "WI-SKILL@1":
+    type: "WorkItem"
+    id: "WI-SKILL"
+    revision: "1"
+    plan_ref: "PLAN@1"
+    plan_item: "update-skill"
+    kind: "method-change"
+    base_revision: "K11"
+    owner_area_ref: "SERVICE-DESIGN@1"
+    outcome_at_end: "accepted"
+    output_refs: ["API-DEVELOPMENT@2"]
+    evidence_refs: ["METHOD-REPORT@2"]
+  "WI-CHECK@1":
+    type: "WorkItem"
+    id: "WI-CHECK"
+    revision: "1"
+    plan_ref: "PLAN@1"
+    plan_item: "check-validator"
+    kind: "method-review"
+    base_revision: "K11"
+    owner_area_ref: "SERVICE-DESIGN@1"
+    outcome_at_end: "accepted_no_change"
+    output_refs: ["ACCESS-CHECK@1"]
+    evidence_refs: ["CHECK-REPORT@1"]
+  "WI-PROJECT@1":
+    type: "WorkItem"
+    id: "WI-PROJECT"
+    revision: "1"
+    plan_ref: "PLAN@1"
+    plan_item: "update-project"
+    kind: "project-change"
+    base_revision: "K11"
+    owner_area_ref: "SERVICE-DESIGN@1"
+    outcome_at_end: "accepted"
+    output_refs: ["ORDERS-ACCESS@2"]
+    evidence_refs: ["PROJECT-REPORT@2"]
+  "WI-LEGACY@1":
+    type: "WorkItem"
+    id: "WI-LEGACY"
+    revision: "1"
+    plan_ref: "PLAN@1"
+    plan_item: "investigate-legacy"
+    kind: "impact-analysis"
+    base_revision: "K11"
+    owner_area_ref: "SERVICE-DESIGN@1"
+    outcome_at_end: "open"
+    output_refs: []
+    evidence_refs: []
+  "ORDERS-METHODS@1":
+    type: "AdoptionRecord"
+    id: "ORDERS-METHODS"
+    revision: "1"
+    target_ref: "ORDERS@1"
+    previous_artifact_refs: ["API-DEVELOPMENT@1", "ACCESS-CHECK@1"]
+    selected_artifact_refs: ["API-DEVELOPMENT@2", "ACCESS-CHECK@1"]
+    decision_ref: "ADOPTION-REVIEW@1"
+    effective_from: "Новые запуски после подтверждения Runtime на этапе S4."
+  "METHODS-COVERAGE@1":
+    type: "CoverageAssessment"
+    id: "METHODS-COVERAGE"
+    revision: "1"
+    requirement_ref: "SEC-AUTH@1"
+    dimension: "methods"
+    scope: "Методы разработки и проверки CENTRAL-ACCESS."
+    subject_refs: ["API-DEVELOPMENT@1", "ACCESS-CHECK@1"]
+    basis_refs: ["CENTRAL-ACCESS@1", "PUBLIC-REVIEW@1"]
+    evidence_refs: ["METHOD-REPORT@1"]
+    result: "covered"
+    gaps: []
+    rationale: "Исходная положительная оценка не подтверждает новую ревизию требования."
+  "METHODS-COVERAGE@2":
+    type: "CoverageAssessment"
+    id: "METHODS-COVERAGE"
+    revision: "2"
+    requirement_ref: "SEC-AUTH@2"
+    dimension: "methods"
+    scope: "Методы разработки и проверки CENTRAL-ACCESS."
+    subject_refs: ["API-DEVELOPMENT@2", "ACCESS-CHECK@1"]
+    basis_refs: ["CENTRAL-ACCESS@1", "PUBLIC-REVIEW@1"]
+    evidence_refs: ["METHOD-REPORT@2", "CHECK-REPORT@1"]
+    result: "covered"
+    gaps: []
+    rationale: "Процедура обновлена, прежний валидатор повторно проверен относительно нового требования."
+  "ORDERS-COVERAGE@1":
+    type: "CoverageAssessment"
+    id: "ORDERS-COVERAGE"
+    revision: "1"
+    requirement_ref: "SEC-AUTH@2"
+    dimension: "project"
+    scope: "ORDERS commit-A; маршруты INVENTORY@1."
+    subject_refs: ["ORDERS-ACCESS@1"]
+    basis_refs: ["CENTRAL-ACCESS@1", "INVENTORY@1", "PUBLIC-REVIEW@1"]
+    evidence_refs: ["PROJECT-REPORT@1"]
+    result: "partial"
+    gaps: ["Нет полной проверки прав на операции и ресурсы."]
+    rationale: "Новая версия навыка не изменяет существующую реализацию."
+  "ORDERS-COVERAGE@2":
+    type: "CoverageAssessment"
+    id: "ORDERS-COVERAGE"
+    revision: "2"
+    requirement_ref: "SEC-AUTH@2"
+    dimension: "project"
+    scope: "ORDERS commit-B; маршруты INVENTORY@1."
+    subject_refs: ["ORDERS-ACCESS@2"]
+    basis_refs: ["CENTRAL-ACCESS@1", "INVENTORY@1", "PUBLIC-REVIEW@1"]
+    evidence_refs: ["PROJECT-REPORT@2"]
+    result: "covered"
+    gaps: []
+    rationale: "Проверена конкретная исправленная версия по полному scope условного примера."
+  "LEGACY-COVERAGE@1":
+    type: "CoverageAssessment"
+    id: "LEGACY-COVERAGE"
+    revision: "1"
+    requirement_ref: "SEC-AUTH@2"
+    dimension: "project"
+    scope: "Применимость и полнота endpoints LEGACY требуют выяснения."
+    subject_refs: ["LEGACY@1"]
+    basis_refs: ["PLAN@1"]
+    evidence_refs: []
+    result: "unknown"
+    gaps: ["Неизвестны механизм защиты и состав endpoints."]
+    rationale: "Отсутствие сведений оставляет исследовательский WorkItem открытым."
+# Пути графа допускают обход в обе стороны с сохранением типа и направления отношения.
+relations:
+  -
+    type: "informs"
+    from: "RATIONALE@1"
+    to: "CENTRAL-ACCESS@1"
+  -
+    type: "requires_control"
+    from: "SEC-AUTH@1"
+    to: "AUTHN@1"
+  -
+    type: "requires_control"
+    from: "SEC-AUTH@2"
+    to: "AUTHN@1"
+  -
+    type: "realized_by"
+    from: "AUTHN@1"
+    to: "CENTRAL-ACCESS@1"
+  -
+    type: "requires_control"
+    from: "SEC-AUTH@2"
+    to: "AUTHZ@1"
+  -
+    type: "realized_by"
+    from: "AUTHZ@1"
+    to: "CENTRAL-ACCESS@1"
+  -
+    type: "selects_pattern"
+    from: "ORDERS-ACCESS@1"
+    to: "CENTRAL-ACCESS@1"
+  -
+    type: "selects_pattern"
+    from: "ORDERS-ACCESS@2"
+    to: "CENTRAL-ACCESS@1"
+  -
+    type: "maintained_by"
+    from: "CENTRAL-ACCESS@1"
+    to: "API-DEVELOPMENT@1"
+  -
+    type: "constrained_by"
+    from: "API-DEVELOPMENT@1"
+    to: "SEC-AUTH@1"
+  -
+    type: "maintained_by"
+    from: "CENTRAL-ACCESS@1"
+    to: "API-DEVELOPMENT@2"
+  -
+    type: "constrained_by"
+    from: "API-DEVELOPMENT@2"
+    to: "SEC-AUTH@2"
+  -
+    type: "maintained_by"
+    from: "CENTRAL-ACCESS@1"
+    to: "ACCESS-CHECK@1"
+  -
+    type: "constrained_by"
+    from: "ACCESS-CHECK@1"
+    to: "SEC-AUTH@1"
+  -
+    type: "assesses_requirement"
+    from: "METHODS-COVERAGE@1"
+    to: "SEC-AUTH@1"
+  -
+    type: "supported_by"
+    from: "METHODS-COVERAGE@1"
+    to: "METHOD-REPORT@1"
+  -
+    type: "assesses_requirement"
+    from: "METHODS-COVERAGE@2"
+    to: "SEC-AUTH@2"
+  -
+    type: "supported_by"
+    from: "METHODS-COVERAGE@2"
+    to: "METHOD-REPORT@2"
+  -
+    type: "supported_by"
+    from: "METHODS-COVERAGE@2"
+    to: "CHECK-REPORT@1"
+  -
+    type: "assesses_requirement"
+    from: "ORDERS-COVERAGE@1"
+    to: "SEC-AUTH@2"
+  -
+    type: "supported_by"
+    from: "ORDERS-COVERAGE@1"
+    to: "PROJECT-REPORT@1"
+  -
+    type: "assesses_requirement"
+    from: "ORDERS-COVERAGE@2"
+    to: "SEC-AUTH@2"
+  -
+    type: "supported_by"
+    from: "ORDERS-COVERAGE@2"
+    to: "PROJECT-REPORT@2"
+  -
+    type: "assesses_requirement"
+    from: "LEGACY-COVERAGE@1"
+    to: "SEC-AUTH@2"
+# Сокращённые проекции этапов; поздние записи нельзя считать доступными в ранней ревизии.
+stages:
+  -
+    id: "S0"
+    knowledge_revision: "K10"
+    description: "Принята SEC-AUTH@1, используются старые методы и commit-A."
+    selected_artifact_refs: ["API-DEVELOPMENT@1", "ACCESS-CHECK@1"]
+    assessments:
+      -
+        assessment_ref: "METHODS-COVERAGE@1"
+        freshness: "current"
+  -
+    id: "S1"
+    knowledge_revision: "K10"
+    description: "SEC-AUTH@2 и PLAN@1 подготовлены как draft; принятия ещё нет."
+    proposal_refs: ["CS-REQUIREMENT@1", "PLAN@1"]
+  -
+    id: "S2"
+    knowledge_revision: "K11"
+    description: "По PLAN-REVIEW@1 принято изменение, созданы работы. Оценка старой нормы требует пересмотра для SEC-AUTH@2."
+    decision_refs: ["PLAN-REVIEW@1"]
+    work_item_refs: ["WI-SKILL@1", "WI-CHECK@1", "WI-PROJECT@1", "WI-LEGACY@1"]
+    assessments:
+      -
+        assessment_ref: "METHODS-COVERAGE@1"
+        freshness: "needs_review"
+  -
+    id: "S3"
+    knowledge_revision: "K12"
+    description: "Результаты методов приняты, новый skill опубликован, валидатор оставлен прежним. Подключение ещё не выполнено."
+    decision_refs: ["METHOD-REVIEW@1"]
+    published_artifact_refs: ["API-DEVELOPMENT@2"]
+    selected_artifact_refs: ["API-DEVELOPMENT@1", "ACCESS-CHECK@1"]
+    assessments:
+      -
+        assessment_ref: "METHODS-COVERAGE@2"
+        freshness: "current"
+      -
+        assessment_ref: "ORDERS-COVERAGE@1"
+        freshness: "current"
+  -
+    id: "S4"
+    knowledge_revision: "K13"
+    description: "Runtime подтвердил подключение для новых запусков. Уже начатые запуски сохраняют прежние версии."
+    adoption_ref: "ORDERS-METHODS@1"
+    selected_artifact_refs: ["API-DEVELOPMENT@2", "ACCESS-CHECK@1"]
+  -
+    id: "S5"
+    knowledge_revision: "K14"
+    description: "Принята исправленная версия ORDERS. Legacy остаётся неизвестным и имеет открытую работу."
+    decision_refs: ["PROJECT-REVIEW@1"]
+    assessments:
+      -
+        assessment_ref: "METHODS-COVERAGE@2"
+        freshness: "current"
+      -
+        assessment_ref: "ORDERS-COVERAGE@2"
+        freshness: "current"
+      -
+        assessment_ref: "LEGACY-COVERAGE@1"
+        freshness: "current"

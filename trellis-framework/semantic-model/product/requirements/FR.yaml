@@ -1,0 +1,16 @@
+nodes:
+  - type: functional-requirement
+    propose: Функциональное требование продукта, описанное как необходимое поведение системы.
+    required:
+      - id: string
+      - name: string
+      - statement: string # Формулировка требования
+      - trigger: string # Триггер
+      - behavior: string # Поведение
+      - outcome: string # Результат
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+    relations:
+      - type: contains
+        from: functional-requirement
+        to: business-rule

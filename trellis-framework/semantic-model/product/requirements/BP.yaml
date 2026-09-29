@@ -1,0 +1,36 @@
+nodes:
+  - type: business-process
+    propose: Последовательность шагов, приводящая к значимому результату в рамках продукта.
+    required:
+      - id: string
+      - name: string
+      - purpose: string # Цель процесса
+      - result: string # Результат процесса
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+    relations:
+      - type: contains
+        from: business-process
+        to: process-step
+
+  - type: process-step
+    propose: Шаг бизнес-процесса с указанием роли, действия и результата.
+    required:
+      - id: string
+      - name: string
+      - step_number: int # Номер шага
+      - action: string # Действие
+      - result: string # Результат шага
+      - actor_ref: string # Ссылка на роль
+    non_required:
+      - summary: string # Краткое описание для поиска и навигации
+    next-steps:
+      - to: process-step
+        rule: business-rule
+    relations:
+      - type: read
+        from: process-step
+        to: business-object
+      - type: write
+        from: process-step
+        to: business-object
