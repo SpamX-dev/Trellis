@@ -1,0 +1,288 @@
+# Декларативное определение или учебные данные по контрактам Framework.
+domain: product
+types:
+  product:
+    title: "Граница продукта и ожидаемая польза."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: purpose
+        label: "Назначение"
+      -
+        field: boundary
+        label: "Граница"
+  actor:
+    title: "Роль человека или внешней системы относительно продукта."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: responsibility
+        label: "Ответственность роли"
+  user-story:
+    title: "Цель и польза для роли пользователя."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: actor_ref
+        label: "Роль"
+      -
+        field: goal
+        label: "Цель"
+      -
+        field: benefit
+        label: "Польза"
+  functional-requirement:
+    title: "Наблюдаемое поведение продукта."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: statement
+        label: "Формулировка"
+      -
+        field: trigger
+        label: "Условие"
+      -
+        field: story_refs
+        label: "Пользовательские цели"
+      -
+        field: rule_refs
+        label: "Бизнес-правила"
+      -
+        field: object_refs
+        label: "Предметные объекты"
+      -
+        field: constraint_refs
+        label: "Ограничения качества"
+      -
+        field: acceptance_criteria
+        label: "Критерии приёмки"
+  non-functional-requirement:
+    title: "Измеримое свойство или ограничение продукта."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: kind
+        label: "Вид"
+      -
+        field: statement
+        label: "Формулировка"
+      -
+        field: measure
+        label: "Способ измерения"
+      -
+        field: target
+        label: "Целевое значение"
+      -
+        field: context
+        label: "Условия"
+  business-rule:
+    title: "Правило предметной области, ограничивающее допустимое поведение."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: statement
+        label: "Формулировка"
+      -
+        field: condition
+        label: "Условие действия"
+  business-process:
+    title: "Последовательность действий в рамках цели продукта."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: goal
+        label: "Цель"
+      -
+        field: steps
+        label: "Шаги"
+  business-object:
+    title: "Предметное понятие и его значимые атрибуты."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: group
+        label: "Группы"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: definition
+        label: "Определение"
+      -
+        field: attributes
+        label: "Атрибуты"

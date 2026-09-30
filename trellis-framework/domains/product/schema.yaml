@@ -1,0 +1,704 @@
+# Документы продуктовых требований. Декларативный контракт; исполнение принадлежит Knowledge.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/schema.yaml
+title: "Документы продуктовых требований"
+oneOf:
+  -
+    $ref: "#/$defs/product"
+  -
+    $ref: "#/$defs/actor"
+  -
+    $ref: "#/$defs/user-story"
+  -
+    $ref: "#/$defs/functional-requirement"
+  -
+    $ref: "#/$defs/non-functional-requirement"
+  -
+    $ref: "#/$defs/business-rule"
+  -
+    $ref: "#/$defs/business-process"
+  -
+    $ref: "#/$defs/business-object"
+$defs:
+  product:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - purpose
+      - boundary
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: product
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      purpose:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Для чего существует продукт."
+      boundary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Что входит в продукт и где заканчивается его ответственность."
+    description: "Граница продукта и ожидаемая польза."
+    x-trellis-checks:
+      -
+        id: product-boundary
+        severity: error
+        prompt: "Проверь, что назначение и граница продукта не противоречат друг другу; обозначь недостающий контекст."
+  actor:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - responsibility
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: actor
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      responsibility:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Роль и интерес участника; не конкретный человек."
+    description: "Роль человека или внешней системы относительно продукта."
+  user-story:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - actor_ref
+      - goal
+      - benefit
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: user-story
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      actor_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Роль, от лица которой заявлена цель."
+        x-trellis-ref:
+          targets:
+            - actor
+          relation: performed-by
+      goal:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Чего хочет достичь роль."
+      benefit:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Для чего это нужно роли."
+    description: "Цель и польза для роли пользователя."
+    x-trellis-checks:
+      -
+        id: story-value
+        severity: error
+        prompt: "Проверь, что цель описывает потребность выбранной роли и содержит понятную пользу."
+  functional-requirement:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - statement
+      - acceptance_criteria
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: functional-requirement
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      statement:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Одно проверяемое поведение продукта."
+      trigger:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Условие или событие, вызывающее поведение."
+      story_refs:
+        type: array
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/id"
+          description: "Пользовательские цели, обосновывающие требование."
+          x-trellis-ref:
+            targets:
+              - user-story
+            relation: based-on
+        uniqueItems: true
+        description: "Пользовательские цели, обосновывающие требование."
+      rule_refs:
+        type: array
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/id"
+          description: "Бизнес-правила поведения."
+          x-trellis-ref:
+            targets:
+              - business-rule
+            relation: governed-by
+        uniqueItems: true
+        description: "Бизнес-правила поведения."
+      object_refs:
+        type: array
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/id"
+          description: "Предметные объекты, с которыми работает поведение."
+          x-trellis-ref:
+            targets:
+              - business-object
+            relation: uses-data
+        uniqueItems: true
+        description: "Предметные объекты, с которыми работает поведение."
+      constraint_refs:
+        type: array
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/id"
+          description: "Измеримые ограничения поведения."
+          x-trellis-ref:
+            targets:
+              - non-functional-requirement
+            relation: constrained-by
+        uniqueItems: true
+        description: "Измеримые ограничения поведения."
+      acceptance_criteria:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Наблюдаемое условие, по которому проверяют выполнение требования."
+    description: "Наблюдаемое поведение продукта."
+    x-trellis-checks:
+      -
+        id: fr-observable
+        severity: error
+        prompt: "Проверь наблюдаемость поведения и соответствие критериев приёмки формулировке; не считай наличие критерия доказательством реализации."
+  non-functional-requirement:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - kind
+      - statement
+      - measure
+      - target
+      - context
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: non-functional-requirement
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      kind:
+        type: string
+        enum:
+          - performance
+          - reliability
+          - security
+          - usability
+          - maintainability
+          - compatibility
+          - other
+        description: "Область свойства."
+      statement:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Какое свойство требуется."
+      measure:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Как измеряют свойство."
+      target:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Целевое значение с единицами измерения, когда они применимы."
+      context:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Условия и область, для которых задано значение."
+    description: "Измеримое свойство или ограничение продукта."
+    x-trellis-checks:
+      -
+        id: nfr-measurable
+        severity: error
+        prompt: "Проверь, что мера, целевое значение и условия позволяют однозначно проверить свойство."
+  business-rule:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - statement
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: business-rule
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      statement:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Правило предметной области."
+      condition:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Условия действия правила."
+    description: "Правило предметной области, ограничивающее допустимое поведение."
+    x-trellis-checks:
+      -
+        id: br-consistent
+        severity: error
+        prompt: "Проверь область действия и отсутствие противоречий с указанными требованиями и исходными сведениями."
+  business-process:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - goal
+      - steps
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: business-process
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      goal:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Результат процесса."
+      steps:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: false
+          required:
+            - key
+            - name
+          properties:
+            key:
+              type: string
+              pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+              description: "Локальный ключ шага, уникальный внутри процесса."
+            name:
+              type: string
+              minLength: 1
+              pattern: "\\S"
+              description: "Действие шага."
+            actor_ref:
+              $ref: "../../contracts/common.schema.yaml#/$defs/id"
+              description: "Исполнитель шага, если применимо."
+              x-trellis-ref:
+                targets:
+                  - actor
+                relation: involves
+            requirement_refs:
+              type: array
+              items:
+                $ref: "../../contracts/common.schema.yaml#/$defs/id"
+                description: "Требования, проявляющиеся на шаге."
+                x-trellis-ref:
+                  targets:
+                    - functional-requirement
+                  relation: realizes
+              uniqueItems: true
+              description: "Требования, проявляющиеся на шаге."
+            next_steps:
+              type: array
+              items:
+                type: string
+                pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+              uniqueItems: true
+              description: "Локальные ключи следующих шагов; отсутствие или [] завершает ветвь."
+    description: "Последовательность действий в рамках цели продукта."
+    x-trellis-checks:
+      -
+        id: process-flow
+        severity: error
+        prompt: "Проверь, что шаги позволяют достичь цели и не пропускают существенные развилки. Цикл допустим, если обусловлен смыслом процесса."
+  business-object:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - definition
+      - attributes
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: business-object
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      group:
+        type: array
+        uniqueItems: true
+        description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      definition:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Смысл объекта в предметной области."
+      attributes:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: false
+          required:
+            - name
+            - meaning
+            - value_type
+          properties:
+            name:
+              type: string
+              minLength: 1
+              pattern: "\\S"
+              description: "Имя атрибута."
+            meaning:
+              type: string
+              minLength: 1
+              pattern: "\\S"
+              description: "Смысл значения."
+            value_type:
+              type: string
+              enum:
+                - string
+                - number
+                - integer
+                - boolean
+                - date
+                - object
+                - array
+              description: "Предметный вид значения; не определяет физическую колонку БД."
+    description: "Предметное понятие и его значимые атрибуты."
+    x-trellis-checks:
+      -
+        id: object-meaning
+        severity: error
+        prompt: "Проверь, что объект и атрибуты объяснены в терминах продукта и не подменены схемой физического хранения."

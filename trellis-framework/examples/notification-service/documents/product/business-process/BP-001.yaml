@@ -1,0 +1,24 @@
+id: "BP-001"
+type: business-process
+name: "Включение уведомлений"
+product_ref: PRODUCT-001
+goal: "Включить уведомления на подтверждённый адрес."
+steps:
+  -
+    key: enter-email
+    name: "Указать email"
+    actor_ref: ACTOR-001
+    requirement_refs:
+      - FR-001
+    next_steps:
+      - confirm-email
+  -
+    key: confirm-email
+    name: "Подтвердить адрес по полученному запросу"
+    actor_ref: ACTOR-001
+    requirement_refs:
+      - FR-001
+    next_steps: []
+sources:
+  -
+    location: "Учебное интервью в README примера, раздел «Исходные сведения»."

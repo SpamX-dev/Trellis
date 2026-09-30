@@ -1,5 +1,0 @@
-= Lifecycle Map
-
-== Карта областей
-
-image::overview.svg[Карта жизненного цикла]

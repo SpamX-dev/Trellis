@@ -1,0 +1,14 @@
+id: "CHECK-001"
+type: compliance-assessment
+name: "Оценка обработки email"
+product_ref: PRODUCT-001
+requirement_ref: COMP-001
+document_refs:
+  - FR-001
+  - BD-001
+evaluated_revision: example-base
+applicability: applicable
+conformance: unknown
+basis: "FR-001 и BD-001 прямо предусматривают обработку email. Это делает COMP-001 применимым. Отчёт о выполнении VP-001 отсутствует, поэтому выполнение обязательства неизвестно."
+gaps:
+  - "Нужен отчёт о фактической верификации выбранной версии продукта."

@@ -1,0 +1,52 @@
+# Определение агента и навыков. Декларативный контракт; исполнение принадлежит Knowledge.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/contracts/agent.schema.yaml
+title: "Определение агента и навыков"
+type: object
+additionalProperties: false
+required:
+  - domain
+  - prompt
+  - skills
+properties:
+  domain:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Домен результата работы; не является самостоятельным разрешением доступа."
+  prompt:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Общая ответственность и правила работы агента."
+  skills:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - prompt
+        - schema
+      properties:
+        name:
+          type: string
+          pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        prompt:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Авторская процедура получения или проверки знаний."
+        schema:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Относительная ссылка на схему результата, возможно с JSON Pointer."
+        examples:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            minLength: 1
+            pattern: "\\S"

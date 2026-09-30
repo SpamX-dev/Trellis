@@ -1,0 +1,15 @@
+{
+  "name": "trellis-contracts",
+  "private": true,
+  "type": "module",
+  "description": "Проверка контрактов и примеров Trellis",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "check": "node trellis-knowledge/validation/check.mjs",
+    "test": "node --test trellis-knowledge/validation/check.test.mjs"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "yaml": "2.9.1"
+  }
+}

@@ -1,0 +1,14 @@
+id: "COMP-001"
+type: compliance-requirement
+name: "Верификация использования email"
+kind: conditional-obligation
+statement: "До включения сценария обработки email продукт проходит назначенную верификацию."
+area: "Контактные данные"
+source_kind: policy
+trigger: "Продукт использует email пользователя."
+procedure_refs:
+  - VP-001
+sources:
+  -
+    location: "Учебная внутренняя политика из README примера."
+    quote: "Использование email требует верификации сценария службой качества по процедуре VP-001."

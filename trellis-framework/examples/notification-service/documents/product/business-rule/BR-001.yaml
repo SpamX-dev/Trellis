@@ -1,0 +1,8 @@
+id: "BR-001"
+type: business-rule
+name: "Уведомления после подтверждения"
+product_ref: PRODUCT-001
+statement: "Адрес получает уведомления только в состоянии confirmed."
+sources:
+  -
+    location: "Учебное интервью в README примера, раздел «Исходные сведения»."

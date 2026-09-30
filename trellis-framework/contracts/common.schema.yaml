@@ -1,0 +1,30 @@
+# Общие значения документов Trellis. Декларативный контракт; исполнение принадлежит Knowledge.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/contracts/common.schema.yaml
+title: "Общие значения документов Trellis"
+$defs:
+  id:
+    type: string
+    pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    description: "Строковый идентификатор, уникальный во всём выбранном наборе документов. Не зависит от пути."
+  text:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Непустое содержательное текстовое значение."
+  source:
+    type: object
+    additionalProperties: false
+    required:
+      - location
+    properties:
+      location:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Адрес, путь или явно названный источник сообщения."
+      quote:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Дословный фрагмент, если он доступен."

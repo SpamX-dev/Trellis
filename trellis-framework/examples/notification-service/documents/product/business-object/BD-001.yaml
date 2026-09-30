@@ -1,0 +1,17 @@
+id: "BD-001"
+type: business-object
+name: "Адрес уведомлений"
+product_ref: PRODUCT-001
+definition: "Email пользователя с состоянием подтверждения для отправки уведомлений."
+attributes:
+  -
+    name: email
+    meaning: "Адрес, указанный пользователем."
+    value_type: string
+  -
+    name: confirmation_state
+    meaning: "Состояние pending или confirmed."
+    value_type: string
+sources:
+  -
+    location: "Учебное интервью в README примера, раздел «Исходные сведения»."

@@ -2,3 +2,4 @@
 *.dtmp
 *.log
 .vscode/
+node_modules/

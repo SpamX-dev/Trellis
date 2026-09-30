@@ -1,0 +1,27 @@
+# Декларативное определение или учебные данные по контрактам Framework.
+id: CHANGE-001
+base_revision: example-base
+framework_revision: example-framework
+reason: "Учебное уточнение: сократить допустимое время отправки запроса подтверждения."
+operations:
+  -
+    op: replace
+    path: product/non-functional-requirement/NFR-001.yaml
+    document_id: NFR-001
+    document:
+      id: NFR-001
+      type: non-functional-requirement
+      name: "Время отправки запроса подтверждения"
+      product_ref: PRODUCT-001
+      kind: performance
+      statement: "Запрос подтверждения отправляется без длительного ожидания."
+      measure: "Время от принятия команды пользователя до передачи сообщения почтовому сервису."
+      target: "Не более 3 секунд для 95% запросов."
+      context: "При нагрузке до 10 запросов в секунду и доступном почтовом сервисе."
+      sources:
+        -
+          location: "Учебное интервью в README примера, раздел «Исходные сведения»."
+        -
+          location: "Учебное уточнение владельца продукта: 95% запросов при нагрузке до 10 запросов в секунду."
+        -
+          location: "Учебное уточнение к ChangeSet: сократить время ожидания с пяти до трёх секунд."

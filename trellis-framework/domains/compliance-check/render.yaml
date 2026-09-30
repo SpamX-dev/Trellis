@@ -1,0 +1,48 @@
+# Декларативное определение или учебные данные по контрактам Framework.
+domain: compliance-check
+types:
+  compliance-assessment:
+    title: "Обоснованная оценка применимости одного ограничения к продукту и выполнения применимого обязательства."
+    fields:
+      -
+        field: id
+        label: "Идентификатор"
+      -
+        field: type
+        label: "Тип"
+      -
+        field: name
+        label: "Название"
+      -
+        field: summary
+        label: "Краткое описание"
+      -
+        field: sources
+        label: "Источники"
+      -
+        field: gaps
+        label: "Открытые вопросы"
+      -
+        field: product_ref
+        label: "Продукт"
+      -
+        field: requirement_ref
+        label: "Проверяемое ограничение"
+      -
+        field: document_refs
+        label: "Использованные документы"
+      -
+        field: evaluated_revision
+        label: "Снимок оценки"
+      -
+        field: applicability
+        label: "Применимость"
+      -
+        field: conformance
+        label: "Выполнение"
+      -
+        field: basis
+        label: "Основание"
+      -
+        field: evidence
+        label: "Подтверждающие материалы"

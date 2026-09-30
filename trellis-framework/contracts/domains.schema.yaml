@@ -1,0 +1,49 @@
+# Конфигурация доменов. Декларативный контракт; исполнение принадлежит Knowledge.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/contracts/domains.schema.yaml
+title: "Конфигурация доменов"
+type: object
+additionalProperties: false
+required:
+  - format_version
+  - domains
+properties:
+  format_version:
+    const: "1"
+  domains:
+    type: object
+    minProperties: 1
+    propertyNames:
+      pattern: "^[a-z][a-z0-9-]*$"
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      required:
+        - schema
+        - agent
+        - render
+      properties:
+        schema:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Путь к JSON Schema относительно конфигурации доменов."
+        agent:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Путь к определению агента относительно конфигурации доменов."
+        render:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Путь к правилам представления относительно конфигурации доменов."
+        on_change:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            minLength: 1
+            pattern: "\\S"
+          uniqueItems: true
+          description: "Явная подписка на принятое изменение перечисленных доменов; отсутствие означает отсутствие автозапуска."

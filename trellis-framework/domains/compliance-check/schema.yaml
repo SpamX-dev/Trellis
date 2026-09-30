@@ -1,0 +1,172 @@
+# Оценки комплаенса. Декларативный контракт; исполнение принадлежит Knowledge.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/compliance-check/schema.yaml
+title: "Оценки комплаенса"
+oneOf:
+  -
+    $ref: "#/$defs/compliance-assessment"
+$defs:
+  compliance-assessment:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+      - name
+      - product_ref
+      - requirement_ref
+      - document_refs
+      - evaluated_revision
+      - applicability
+      - conformance
+      - basis
+    properties:
+      id:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+      type:
+        const: compliance-assessment
+      name:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое содержательное название документа."
+      summary:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Краткое описание для чтения каталога и поиска."
+      sources:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+      gaps:
+        type: array
+        minItems: 1
+        items:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Явно неизвестный факт или открытый вопрос."
+      product_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Продукт, к которому относятся знания."
+        x-trellis-ref:
+          targets:
+            - product
+          relation: describes-product
+      requirement_ref:
+        $ref: "../../contracts/common.schema.yaml#/$defs/id"
+        description: "Проверяемое комплаенс-ограничение."
+        x-trellis-ref:
+          targets:
+            - compliance-requirement
+          relation: assesses
+      document_refs:
+        type: array
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/id"
+          description: "Документы продукта, использованные при оценке."
+          x-trellis-ref:
+            targets:
+              - product
+              - actor
+              - user-story
+              - functional-requirement
+              - non-functional-requirement
+              - business-rule
+              - business-process
+              - business-object
+            relation: based-on
+        uniqueItems: true
+        description: "Документы продукта, использованные при оценке."
+      evaluated_revision:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Снимок базы документов, использованный при оценке, включая проверяемое ограничение."
+      applicability:
+        type: string
+        enum:
+          - applicable
+          - not-applicable
+          - unknown
+        description: "Применимо, доказанно неприменимо или недостаточно данных."
+      conformance:
+        type: string
+        enum:
+          - satisfied
+          - violated
+          - unknown
+          - not-assessed
+        description: "Результат проверки применимого обязательства; not-assessed используется при неприменимости."
+      basis:
+        type: string
+        minLength: 1
+        pattern: "\\S"
+        description: "Основание применимости и результата с объяснением существенных фактов."
+      evidence:
+        type: array
+        minItems: 1
+        items:
+          $ref: "../../contracts/common.schema.yaml#/$defs/source"
+    description: "Обоснованная оценка применимости одного ограничения к продукту и выполнения применимого обязательства."
+    x-trellis-checks:
+      -
+        id: assessment-grounding
+        severity: error
+        prompt: "Проверь основания применимости и выполнения отдельно. Отсутствие сопоставления не доказывает неприменимость. Требование пройти процедуру не доказывает её выполнения."
+    allOf:
+      -
+        if:
+          properties:
+            applicability:
+              const: unknown
+          required:
+            - applicability
+        then:
+          properties:
+            conformance:
+              const: unknown
+            gaps: {}
+          required:
+            - gaps
+      -
+        if:
+          properties:
+            applicability:
+              const: not-applicable
+          required:
+            - applicability
+        then:
+          properties:
+            conformance:
+              const: not-assessed
+      -
+        if:
+          properties:
+            applicability:
+              const: applicable
+          required:
+            - applicability
+        then:
+          properties:
+            conformance:
+              enum:
+                - satisfied
+                - violated
+                - unknown
+      -
+        if:
+          properties:
+            conformance:
+              enum:
+                - satisfied
+                - violated
+          required:
+            - conformance
+        then:
+          required:
+            - evidence
+          properties:
+            evidence: {}
