@@ -9,6 +9,7 @@ export type ValidationCode =
   | 'invalid_value'
   | 'unknown_field'
   | 'duplicate_value'
+  | 'missing_reference'
   | 'empty_array';
 
 /** Ошибка проверки с путём к конкретному полю или элементу массива. */

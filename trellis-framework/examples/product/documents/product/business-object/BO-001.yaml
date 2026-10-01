@@ -1,0 +1,17 @@
+id: "BO-001"
+type: business-object
+name: Уведомление
+group:
+  - уведомления
+product_ref: "PRODUCT-001"
+definition: Сообщение, доставляемое получателю по выбранному каналу связи.
+attributes:
+  - name: канал
+    meaning: Способ доставки сообщения получателю.
+    value_type: string
+  - name: адрес
+    meaning: Куда доставляется сообщение.
+    value_type: string
+  - name: отправлено_в
+    meaning: Момент передачи сообщения.
+    value_type: date

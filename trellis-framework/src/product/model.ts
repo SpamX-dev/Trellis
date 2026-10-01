@@ -78,6 +78,8 @@ export interface FunctionalRequirement {
   trigger?: string;
   /** Идентификаторы пользовательских историй, обосновывающих требование. */
   story_refs?: string[];
+  /** Идентификаторы предметных объектов, с которыми работает поведение. */
+  object_refs?: string[];
   /** Идентификаторы нефункциональных требований, ограничивающих поведение. */
   constraint_refs?: string[];
   /** Наблюдаемые условия выполнения требования; список должен быть непустым. */
@@ -124,5 +126,93 @@ export interface NonFunctionalRequirement {
   context: string;
 }
 
-/** Один из четырёх продуктовых документов первого цикла. */
-export type ProductDocument = Product | UserStory | FunctionalRequirement | NonFunctionalRequirement;
+/** Один из шести продуктовых документов первого цикла. */
+export type ProductDocument =
+  | Product
+  | UserStory
+  | FunctionalRequirement
+  | NonFunctionalRequirement
+  | BusinessObject
+  | BusinessProcess;
+
+/** Предметный вид значения атрибута; не определяет физическую колонку БД. */
+export type BusinessAttributeValueType =
+  | 'string'
+  | 'number'
+  | 'integer'
+  | 'boolean'
+  | 'date'
+  | 'object'
+  | 'array';
+
+/** Атрибут предметного объекта с пояснением его смысла. */
+export interface BusinessAttribute {
+  /** Имя атрибута в предметной терминологии. */
+  name: string;
+  /** Смысл значения атрибута. */
+  meaning: string;
+  /** Предметный вид значения из закрытого набора. */
+  value_type: BusinessAttributeValueType;
+}
+
+/** Предметное понятие и его значимые атрибуты. */
+export interface BusinessObject {
+  /** Уникальный идентификатор документа в проверяемом наборе. */
+  id: string;
+  /** Признак предметного объекта. */
+  type: 'business-object';
+  /** Краткое содержательное название. */
+  name: string;
+  /** Краткое описание для каталога и поиска. */
+  summary?: string;
+  /** Точные имена групп для поиска; они не являются ссылками на документы. */
+  group?: string[];
+  /** Источники сведений о предметном понятии. */
+  sources?: DocumentSource[];
+  /** Явно неизвестные факты и открытые вопросы. */
+  gaps?: string[];
+  /** Идентификатор продукта, к которому относится понятие. */
+  product_ref: string;
+  /** Смысл объекта в предметной области. */
+  definition: string;
+  /** Значимые атрибуты объекта; список должен быть непустым. */
+  attributes: BusinessAttribute[];
+}
+
+/** Шаг бизнес-процесса с локальным ключом и продолжением. */
+export interface BusinessProcessStep {
+  /** Локальный ключ шага, уникальный внутри процесса. */
+  key: string;
+  /** Действие шага. */
+  name: string;
+  /** Исполнитель шага в содержательной формулировке, без ссылки на отдельный документ. */
+  actor?: string;
+  /** Идентификаторы функциональных требований, проявляющихся на шаге. */
+  requirement_refs?: string[];
+  /** Локальные ключи следующих шагов; отсутствие или пустой список завершает ветвь. */
+  next_steps?: string[];
+}
+
+/** Последовательность действий в рамках цели продукта. */
+export interface BusinessProcess {
+  /** Уникальный идентификатор документа в проверяемом наборе. */
+  id: string;
+  /** Признак бизнес-процесса. */
+  type: 'business-process';
+  /** Краткое содержательное название. */
+  name: string;
+  /** Краткое описание для каталога и поиска. */
+  summary?: string;
+  /** Точные имена групп для поиска; они не являются ссылками на документы. */
+  group?: string[];
+  /** Источники сведений о процессе. */
+  sources?: DocumentSource[];
+  /** Явно неизвестные факты и открытые вопросы. */
+  gaps?: string[];
+  /** Идентификатор продукта, к которому относится процесс. */
+  product_ref: string;
+  /** Результат процесса. */
+  goal: string;
+  /** Шаги процесса; список должен быть непустым. */
+  steps: BusinessProcessStep[];
+}

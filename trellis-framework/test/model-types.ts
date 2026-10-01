@@ -1,8 +1,13 @@
 import type {
+  BusinessAttributeValueType,
+  BusinessObject,
+  BusinessProcess,
+  BusinessProcessStep,
   FunctionalRequirement,
   NonFunctionalRequirement,
   Product,
   ProductDocument,
+  SnapshotFile,
   UserStory,
 } from '../src/product/index.js';
 
@@ -81,6 +86,60 @@ export const invalidKind: NonFunctionalRequirement = {
 /** Компилятор должен отклонять неизвестный тип документа. */
 export const invalidDocumentType: ProductDocument = {
   ...product,
-  // @ts-expect-error Первый цикл поддерживает только четыре типа документов.
-  type: 'business-rule',
+  // @ts-expect-error Первый цикл поддерживает только шесть типов документов.
+  type: 'stakeholder',
+};
+
+const businessObject: BusinessObject = {
+  id: 'BO-001',
+  type: 'business-object',
+  name: 'Уведомление',
+  product_ref: product.id,
+  definition: 'Сообщение, доставляемое получателю.',
+  attributes: [
+    { name: 'канал', meaning: 'Способ доставки.', value_type: 'string' },
+  ],
+};
+
+/** Компилятор должен отклонять вид значения вне закрытого набора. */
+// @ts-expect-error Вид uuid не входит в набор предметных видов значений.
+export const invalidAttributeValueType: BusinessAttributeValueType = 'uuid';
+
+const businessProcessStep: BusinessProcessStep = {
+  key: 'send',
+  name: 'Передать сообщение',
+  actor: 'Сервис уведомлений',
+  requirement_refs: [functionalRequirement.id],
+};
+
+const businessProcess: BusinessProcess = {
+  id: 'BP-001',
+  type: 'business-process',
+  name: 'Доставка уведомления',
+  product_ref: product.id,
+  goal: 'Доставить уведомление.',
+  steps: [
+    { key: 'confirm', name: 'Подтвердить адрес', next_steps: [businessProcessStep.key] },
+    businessProcessStep,
+  ],
+};
+
+/** Компилятор должен отклонять процесс без обязательного списка шагов. */
+export const invalidProcessSteps: BusinessProcess = {
+  ...businessProcess,
+  // @ts-expect-error Шаги процесса обязательны.
+  steps: undefined,
+};
+
+/** Компилятор должен принимать файл снимка с путём и текстовым содержимым. */
+export const snapshotFile: SnapshotFile = {
+  path: 'user-story/US-001.yaml',
+  content: 'id: US-001\n',
+};
+
+/** Компилятор должен отклонять файл снимка без текстового содержимого. */
+export const invalidSnapshotContent: SnapshotFile = {
+  path: 'user-story/US-001.yaml',
+  // @ts-expect-error Содержимое файла снимка является строкой.
+  content: 42,
 };

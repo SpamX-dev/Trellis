@@ -9,6 +9,8 @@ statement: Продукт включает уведомления только �
 trigger: Пользователь запросил включение уведомлений.
 story_refs:
   - "US-001"
+object_refs:
+  - "BO-001"
 constraint_refs:
   - "NFR-001"
 acceptance_criteria:

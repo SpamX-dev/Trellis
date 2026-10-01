@@ -18,6 +18,9 @@
     }
   },
   "files": ["dist"],
+  "dependencies": {
+    "yaml": "2.9.1"
+  },
   "scripts": {
     "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.examples.json",
     "build": "tsc -p tsconfig.json",

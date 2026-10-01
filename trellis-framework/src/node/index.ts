@@ -1,2 +1,2 @@
 /** Публичная точка входа файловых операций и сборки контекста агента. */
-export {};
+export { parseStrictYaml, StrictYamlError } from './yaml.js';

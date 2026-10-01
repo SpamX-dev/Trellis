@@ -9,8 +9,12 @@ test('собранный пакет предоставляет три точки
   assert.equal(typeof framework.parseTaskInput, 'function');
   assert.equal(typeof framework.parseTaskResult, 'function');
   assert.equal(typeof product.parseProductDocument, 'function');
-  assert.deepEqual(Object.keys(node), []);
-  for (const declaration of ['index.d.ts', 'product/index.d.ts', 'node/index.d.ts']) {
+  assert.equal(typeof product.checkProductSnapshot, 'function');
+  assert.equal(typeof node.parseStrictYaml, 'function');
+  assert.equal(typeof node.StrictYamlError, 'function');
+  for (const declaration of [
+    'index.d.ts', 'product/index.d.ts', 'product/snapshot.d.ts', 'node/index.d.ts', 'node/yaml.d.ts',
+  ]) {
     assert.equal(existsSync(new URL(`../dist/${declaration}`, import.meta.url)), true, declaration);
   }
   const modelDeclaration = readFileSync(new URL('../dist/product/model.d.ts', import.meta.url), 'utf8');

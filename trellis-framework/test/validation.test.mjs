@@ -19,8 +19,21 @@ const nfr = {
 const fr = {
   id: 'FR-001', type: 'functional-requirement', name: 'Подтверждение адреса',
   product_ref: product.id, statement: 'Включить уведомления после подтверждения.',
-  story_refs: [story.id], constraint_refs: [nfr.id],
+  story_refs: [story.id], object_refs: ['BO-001'], constraint_refs: [nfr.id],
   acceptance_criteria: ['Без подтверждения уведомления не отправляются.'],
+};
+const bo = {
+  id: 'BO-001', type: 'business-object', name: 'Уведомление',
+  product_ref: product.id, definition: 'Сообщение, доставляемое получателю.',
+  attributes: [{ name: 'канал', meaning: 'Способ доставки.', value_type: 'string' }],
+};
+const bp = {
+  id: 'BP-001', type: 'business-process', name: 'Доставка уведомления',
+  product_ref: product.id, goal: 'Доставить уведомление.',
+  steps: [
+    { key: 'confirm', name: 'Подтвердить адрес', actor: 'Пользователь', next_steps: ['send'] },
+    { key: 'send', name: 'Передать сообщение', requirement_refs: [fr.id] },
+  ],
 };
 
 /** Сверяет машинный код и точный путь ошибки независимо от других находок. */
@@ -30,8 +43,8 @@ function expectIssue(result, code, path) {
     JSON.stringify(result.issues));
 }
 
-test('все четыре документа возвращаются с типизированной формой и без изменения входа', () => {
-  for (const document of [product, story, fr, nfr]) {
+test('все шесть документов возвращаются с типизированной формой и без изменения входа', () => {
+  for (const document of [product, story, fr, nfr, bo, bp]) {
     const before = structuredClone(document);
     const result = parseProductDocument(document);
     assert.equal(result.ok, true, JSON.stringify(result));
@@ -58,7 +71,7 @@ test('текстовые значения не обрезаются и вход 
 
 test('неверные типы, обязательные поля и неизвестные ключи дают пути к полям', () => {
   expectIssue(parseProductDocument(null), 'invalid_type', '$');
-  expectIssue(parseProductDocument({ ...product, type: 'business-rule' }), 'invalid_value', '$.type');
+  expectIssue(parseProductDocument({ ...product, type: 'stakeholder' }), 'invalid_value', '$.type');
   expectIssue(parseProductDocument({ ...product, legacy: true }), 'unknown_field', '$.legacy');
   expectIssue(parseProductDocument({ ...product, purpose: '   ' }), 'empty_string', '$.purpose');
   expectIssue(parseProductDocument({ ...product, name: 5 }), 'invalid_type', '$.name');
@@ -98,6 +111,8 @@ test('группы и ссылки не допускают повторов', ()
     'duplicate_value', '$.story_refs[1]');
   expectIssue(parseProductDocument({ ...fr, constraint_refs: ['NFR-001', 'NFR-001'] }),
     'duplicate_value', '$.constraint_refs[1]');
+  expectIssue(parseProductDocument({ ...fr, object_refs: ['BO-001', 'BO-001'] }),
+    'duplicate_value', '$.object_refs[1]');
   assert.equal(parseProductDocument({ ...product, group: ['Уведомления', 'уведомления'] }).ok, true);
 });
 
@@ -125,4 +140,42 @@ test('вход задачи и отчёт исполнителя разбира�
   expectIssue(parseTaskResult({ status: 'completed', summary: ' ' }), 'empty_string', '$.summary');
   expectIssue(parseTaskResult({ status: 'completed', summary: 'Готово', documents: [] }),
     'unknown_field', '$.documents');
+});
+
+test('атрибуты бизнес-объекта проверяются на каждом уровне', () => {
+  expectIssue(parseProductDocument({ ...bo, definition: '   ' }), 'empty_string', '$.definition');
+  expectIssue(parseProductDocument({ ...bo, attributes: [] }), 'empty_array', '$.attributes');
+  const { attributes, ...missingAttributes } = bo;
+  expectIssue(parseProductDocument(missingAttributes), 'required', '$.attributes');
+  expectIssue(parseProductDocument({ ...bo, attributes: [{ name: 'канал', meaning: 'Способ.', value_type: 'uuid' }] }),
+    'invalid_value', '$.attributes[0].value_type');
+  expectIssue(parseProductDocument({ ...bo, attributes: [{ name: 7, meaning: 'Способ.', value_type: 'string' }] }),
+    'invalid_type', '$.attributes[0].name');
+  expectIssue(parseProductDocument({ ...bo, attributes: [{ name: 'канал', meaning: 'Способ.', value_type: 'string', extra: true }] }),
+    'unknown_field', '$.attributes[0].extra');
+});
+
+test('шаги процесса требуют уникальные ключи и существующие продолжения', () => {
+  expectIssue(parseProductDocument({ ...bp, steps: [] }), 'empty_array', '$.steps');
+  const duplicateKeys = {
+    ...bp,
+    steps: [
+      { key: 'send', name: 'Первый' },
+      { key: 'send', name: 'Второй' },
+    ],
+  };
+  expectIssue(parseProductDocument(duplicateKeys), 'duplicate_value', '$.steps[1].key');
+  const danglingNext = {
+    ...bp,
+    steps: [{ key: 'confirm', name: 'Подтвердить', next_steps: ['unknown'] }],
+  };
+  expectIssue(parseProductDocument(danglingNext), 'missing_reference', '$.steps[0].next_steps[0]');
+  expectIssue(parseProductDocument({ ...bp, steps: [{ key: 'send', name: 'Передать', next_steps: ['send', 'send'] }] }),
+    'duplicate_value', '$.steps[0].next_steps[1]');
+  expectIssue(parseProductDocument({ ...bp, steps: [{ key: 'BAD KEY', name: 'Передать' }] }),
+    'invalid_id', '$.steps[0].key');
+  expectIssue(parseProductDocument({ ...bp, steps: [{ key: 'send', name: 'Передать', requirement_refs: ['BAD ID'] }] }),
+    'invalid_id', '$.steps[0].requirement_refs[0]');
+  expectIssue(parseProductDocument({ ...bp, steps: [{ key: 'send', name: 'Передать', unknown: true }] }),
+    'unknown_field', '$.steps[0].unknown');
 });

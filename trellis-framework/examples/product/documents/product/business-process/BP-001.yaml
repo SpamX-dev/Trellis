@@ -1,0 +1,18 @@
+id: "BP-001"
+type: business-process
+name: Доставка уведомления
+group:
+  - уведомления
+product_ref: "PRODUCT-001"
+goal: Уведомление доставлено получателю по выбранному каналу.
+steps:
+  - key: confirm_address
+    name: Подтвердить адрес получателя
+    actor: Пользователь
+    requirement_refs:
+      - "FR-001"
+    next_steps:
+      - send
+  - key: send
+    name: Передать сообщение в канал доставки
+    actor: Сервис уведомлений

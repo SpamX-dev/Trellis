@@ -1,4 +1,4 @@
-/** Публичная точка входа модели продуктовых документов и агента. */
+/** Публичная точка входа модели продуктовых документов, проверок и агента. */
 export type {
   DocumentSource,
   Product,
@@ -6,6 +6,19 @@ export type {
   FunctionalRequirement,
   NonFunctionalRequirementKind,
   NonFunctionalRequirement,
+  BusinessAttributeValueType,
+  BusinessAttribute,
+  BusinessObject,
+  BusinessProcessStep,
+  BusinessProcess,
   ProductDocument,
 } from './model.js';
 export { parseProductDocument } from './validation.js';
+export type {
+  SnapshotFile,
+  SnapshotCode,
+  SnapshotIssue,
+  CheckedProductSnapshot,
+  SnapshotCheckResult,
+} from './snapshot.js';
+export { checkProductSnapshot } from './snapshot.js';
