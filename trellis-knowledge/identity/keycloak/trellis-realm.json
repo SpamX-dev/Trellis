@@ -4,6 +4,8 @@
   "displayName": "Trellis",
   "enabled": true,
   "registrationAllowed": true,
+  "duplicateEmailsAllowed": true,
+  "loginWithEmailAllowed": false,
   "roles": {
     "realm": [
       {
@@ -52,6 +54,7 @@
     {
       "id": "615126a3-0a00-40e8-8352-0c742a288524",
       "username": "trellis-admin",
+      "email": "loca@local",
       "firstName": "Trellis",
       "lastName": "Admin",
       "enabled": true,
@@ -62,6 +65,7 @@
     {
       "id": "1ed77bb2-92c5-4700-be4d-fc082e43120e",
       "username": "p1u",
+      "email": "loca@local",
       "firstName": "Product 1",
       "lastName": "User",
       "enabled": true,
@@ -72,6 +76,7 @@
     {
       "id": "274750f4-7ded-49a5-bf31-ac1d192d6311",
       "username": "p1o",
+      "email": "loca@local",
       "firstName": "Product 1",
       "lastName": "Owner",
       "enabled": true,
@@ -82,6 +87,7 @@
     {
       "id": "cb6fc991-51c5-4698-8097-12a42eada805",
       "username": "p2u",
+      "email": "loca@local",
       "firstName": "Product 2",
       "lastName": "User",
       "enabled": true,
@@ -92,6 +98,7 @@
     {
       "id": "3031018c-54a5-4731-b545-6d9695cba733",
       "username": "p2o",
+      "email": "loca@local",
       "firstName": "Product 2",
       "lastName": "Owner",
       "enabled": true,
@@ -102,6 +109,7 @@
     {
       "id": "899ddea5-d146-4f56-8897-d9109b611528",
       "username": "compliance",
+      "email": "loca@local",
       "firstName": "Compliance",
       "lastName": "User",
       "enabled": true,
@@ -112,6 +120,7 @@
     {
       "id": "dec08f96-5d29-4e20-b6d6-e5346963ac95",
       "username": "compliance-owner",
+      "email": "loca@local",
       "firstName": "Compliance",
       "lastName": "Owner",
       "enabled": true,
