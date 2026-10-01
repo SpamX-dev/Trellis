@@ -1,0 +1,7 @@
+body { margin: 0; background: #f5f7fb; }
+.page { max-width: 1300px; margin: 0 auto; padding: 24px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.grid { display: grid; grid-template-columns: minmax(280px, 370px) 1fr; gap: 20px; align-items: start; }
+.path { font-family: monospace; word-break: break-all; }
+.blob { max-height: 500px; overflow: auto; background: #101827; color: #e5edf9; padding: 18px; border-radius: 6px; }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .page { padding: 12px; } }

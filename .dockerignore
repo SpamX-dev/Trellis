@@ -1,0 +1,9 @@
+.git
+node_modules
+dist
+dist-web
+var
+**/.env
+**/*.log
+**/*.bkp
+**/*.dtmp

@@ -19,15 +19,11 @@ services:
       timeout: 5s
       retries: 20
 
-  # При каждом старте realm trellis заменяется конфигурацией из рабочей копии Git.
-  # Импорт завершается до запуска единственного сервера; master не перезаписывается.
+  # Realm из Git создаётся только при первом запуске. Повторный запуск сохраняет
+  # пользователей, пароли и роли в PostgreSQL; действующие данные не перезаписываются.
   keycloak:
     image: quay.io/keycloak/keycloak:26.7.4
-    entrypoint: [/bin/bash, -ec]
-    command:
-      - |
-        /opt/keycloak/bin/kc.sh import --file /opt/keycloak/data/import/trellis-realm.json --override true
-        exec /opt/keycloak/bin/kc.sh start-dev
+    command: start-dev --import-realm
     restart: unless-stopped
     depends_on:
       postgres:
@@ -63,7 +59,7 @@ services:
       start_period: 90s
       retries: 30
 
-# Хранит состояние Keycloak, включая master. Realm trellis заменяется при запуске.
+# Хранит состояние Keycloak, включая master и realm trellis.
 # docker compose down сохраняет том; down -v удаляет его вместе с данными.
 volumes:
   postgres-data:

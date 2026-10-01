@@ -3,3 +3,7 @@
 *.log
 .vscode/
 node_modules/
+dist/
+dist-web/
+.env
+var/
