@@ -1,0 +1,123 @@
+{
+  "id": "585c53c6-5ca7-4a36-85fe-c725c636e3c3",
+  "realm": "trellis",
+  "displayName": "Trellis",
+  "enabled": true,
+  "registrationAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "id": "95f9bb33-c690-4493-ae5e-60e89e54b7cf",
+        "name": "trellis-admin",
+        "description": "Глобальное администрирование Trellis; доступ к содержимому проектов назначается отдельно в Knowledge."
+      },
+      {
+        "id": "b9de92a6-bc67-4eb9-9279-9a749e0a6657",
+        "name": "compliance"
+      },
+      {
+        "id": "199b64b6-4cc9-419e-8df2-aeb45281557f",
+        "name": "compliance-checker"
+      },
+      {
+        "id": "48dc7c34-2af1-4f86-933d-e8118ae7f20a",
+        "name": "product-1"
+      },
+      {
+        "id": "f0a81d3e-9b87-43fa-ae68-4cc7b5b60b3c",
+        "name": "product-2"
+      }
+    ]
+  },
+  "groups": [
+    {
+      "id": "9bd59326-49ac-48af-b0b5-f2e9e8373b33",
+      "name": "trellis-admins",
+      "realmRoles": ["trellis-admin"]
+    },
+    {
+      "id": "82e57c00-f05c-4bf6-9a25-a9816d04000b",
+      "name": "product-1"
+    },
+    {
+      "id": "6b0dc44b-7978-40db-9fe4-f8aa8e055cc0",
+      "name": "product-2"
+    },
+    {
+      "id": "5d8d5d6b-e1b5-4f68-94b2-82db50cc42ad",
+      "name": "compliance"
+    }
+  ],
+  "users": [
+    {
+      "id": "615126a3-0a00-40e8-8352-0c742a288524",
+      "username": "trellis-admin",
+      "firstName": "Trellis",
+      "lastName": "Admin",
+      "enabled": true,
+      "groups": ["/trellis-admins"],
+      "realmRoles": ["default-roles-trellis"],
+      "credentials": [{"type": "password", "value": "111", "temporary": false}]
+    },
+    {
+      "id": "1ed77bb2-92c5-4700-be4d-fc082e43120e",
+      "username": "p1u",
+      "firstName": "Product 1",
+      "lastName": "User",
+      "enabled": true,
+      "groups": ["/product-1"],
+      "realmRoles": ["default-roles-trellis"],
+      "credentials": [{"type": "password", "value": "111", "temporary": false}]
+    },
+    {
+      "id": "274750f4-7ded-49a5-bf31-ac1d192d6311",
+      "username": "p1o",
+      "firstName": "Product 1",
+      "lastName": "Owner",
+      "enabled": true,
+      "groups": ["/product-1"],
+      "realmRoles": ["default-roles-trellis"],
+      "credentials": [{"type": "password", "value": "111", "temporary": false}]
+    },
+    {
+      "id": "cb6fc991-51c5-4698-8097-12a42eada805",
+      "username": "p2u",
+      "firstName": "Product 2",
+      "lastName": "User",
+      "enabled": true,
+      "groups": ["/product-2"],
+      "realmRoles": ["default-roles-trellis"],
+      "credentials": [{"type": "password", "value": "111", "temporary": false}]
+    },
+    {
+      "id": "3031018c-54a5-4731-b545-6d9695cba733",
+      "username": "p2o",
+      "firstName": "Product 2",
+      "lastName": "Owner",
+      "enabled": true,
+      "groups": ["/product-2"],
+      "realmRoles": ["default-roles-trellis"],
+      "credentials": [{"type": "password", "value": "111", "temporary": false}]
+    },
+    {
+      "id": "899ddea5-d146-4f56-8897-d9109b611528",
+      "username": "compliance",
+      "firstName": "Compliance",
+      "lastName": "User",
+      "enabled": true,
+      "groups": ["/compliance"],
+      "realmRoles": ["default-roles-trellis"],
+      "credentials": [{"type": "password", "value": "111", "temporary": false}]
+    },
+    {
+      "id": "dec08f96-5d29-4e20-b6d6-e5346963ac95",
+      "username": "compliance-owner",
+      "firstName": "Compliance",
+      "lastName": "Owner",
+      "enabled": true,
+      "groups": ["/compliance"],
+      "realmRoles": ["default-roles-trellis"],
+      "credentials": [{"type": "password", "value": "111", "temporary": false}]
+    }
+  ]
+}

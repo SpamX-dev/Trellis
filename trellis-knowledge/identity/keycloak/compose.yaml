@@ -1,0 +1,69 @@
+# Локальное окружение провайдера Identity. HTTP доступен только с этого компьютера;
+# start-dev предназначен для разработки. Постоянное состояние принадлежит PostgreSQL.
+name: trellis-identity
+
+services:
+  # База обслуживает только Keycloak и не публикует порт на хосте.
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # При каждом старте realm trellis заменяется конфигурацией из рабочей копии Git.
+  # Импорт завершается до запуска единственного сервера; master не перезаписывается.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.4
+    entrypoint: [/bin/bash, -ec]
+    command:
+      - |
+        /opt/keycloak/bin/kc.sh import --file /opt/keycloak/data/import/trellis-realm.json --override true
+        exec /opt/keycloak/bin/kc.sh start-dev
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?Set KC_BOOTSTRAP_ADMIN_PASSWORD in .env}
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8080}
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - ./trellis-realm.json:/opt/keycloak/data/import/trellis-realm.json:ro
+    # В образе нет curl: готовность проверяется через HTTP на внутреннем порту.
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -ec
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000;
+          printf 'GET /health/ready HTTP/1.0\r\n\r\n' >&3;
+          read -r response <&3; [[ $$response == *' 200 '* ]];
+          exec 4<>/dev/tcp/127.0.0.1/8080;
+          printf 'GET /realms/trellis HTTP/1.0\r\n\r\n' >&4;
+          read -r response <&4; [[ $$response == *' 200 '* ]]
+      interval: 10s
+      timeout: 5s
+      start_period: 90s
+      retries: 30
+
+# Хранит состояние Keycloak, включая master. Realm trellis заменяется при запуске.
+# docker compose down сохраняет том; down -v удаляет его вместе с данными.
+volumes:
+  postgres-data:
