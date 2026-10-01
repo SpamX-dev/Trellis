@@ -1,0 +1,47 @@
+# Авторский навык пакета; инструкции и ссылки материализуются из снимка Framework.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/contracts/skill.schema.yaml
+title: "Навык пакета агента"
+type: object
+additionalProperties: false
+required:
+  - name
+  - instructions
+  - schemas
+properties:
+  name:
+    type: string
+    pattern: "^[a-z][a-z0-9-]*$"
+  instructions:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Авторская процедура навыка, а не машинный гейт."
+  schemas:
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+      description: "Ссылка на схему или её определение с JSON Pointer."
+  examples:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - file
+        - schema
+      properties:
+        file:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+        schema:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Одна из схем навыка для проверки примера."

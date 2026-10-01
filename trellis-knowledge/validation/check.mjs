@@ -8,7 +8,7 @@ import { readFileSync, readdirSync, realpathSync, existsSync } from 'node:fs';
 import { resolve, relative, dirname, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
-import { parseDocument, visit, isAlias, isMap, isScalar } from 'yaml';
+import { parseDocument, stringify, visit, isAlias, isMap, isScalar } from 'yaml';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const ORIGIN = 'https://trellis.local/framework/';
@@ -67,7 +67,8 @@ function readYaml(file, document = false) {
 
 /** Разрешает файловую ссылку конфигурации только внутри выбранного Framework. */
 function configPath(framework, from, target) {
-  requireThat(typeof target === 'string' && !target.includes('\\') && !isAbsolute(target),
+  requireThat(typeof target === 'string' && !target.includes('\\') && !isAbsolute(target) &&
+    !/^[a-z][a-z0-9+.-]*:/i.test(target),
     'Недопустимая ссылка конфигурации: ' + target);
   const file = realpathSync(resolve(dirname(from), target.split('#')[0]));
   const rel = relative(realpathSync(framework), file);
@@ -117,15 +118,33 @@ export function loadFramework(root = ROOT) {
     const schemaFile = configPath(framework, manifestFile, config.schema);
     const domainSchema = readYaml(schemaFile);
     requireThat(schemas.has(domainSchema.$id), domain + ': схема не зарегистрирована');
-    const definitions = domainSchema.$defs ?? {};
-    const expectedBranches = Object.keys(definitions).map(type => '#/$defs/' + type).sort();
-    requireThat(JSON.stringify(domainSchema.oneOf?.map(branch => branch.$ref).sort()) === JSON.stringify(expectedBranches),
-      domain + ': oneOf должен перечислять все и только собственные типы');
-    for (const [type, definition] of Object.entries(definitions)) {
+    const definitions = domainSchema.$defs
+      ? Object.entries(domainSchema.$defs).map(([type, schema]) => ({ type, schema, base: domainSchema.$id,
+        id: domainSchema.$id + '#/$defs/' + type }))
+      : (domainSchema.oneOf ?? []).map(branch => {
+        requireThat(Object.keys(branch).length === 1 && typeof branch.$ref === 'string',
+          domain + ': oneOf должен содержать только ссылки на схемы типов');
+        const target = schemaTarget({ schemas }, branch.$ref, domainSchema.$id);
+        const type = target.schema.properties?.type?.const;
+        requireThat(target.id === target.base && target.id === domainSchema.$id.replace(/schema\.yaml$/, type + '.schema.yaml'),
+          domain + ': схема типа должна находиться рядом с составом домена: ' + target.id);
+        return { type, schema: target.schema, base: target.base, id: target.id };
+      });
+    if (domainSchema.$defs) {
+      const expectedBranches = definitions.map(({ type }) => '#/$defs/' + type).sort();
+      requireThat(JSON.stringify(domainSchema.oneOf?.map(branch => branch.$ref).sort()) === JSON.stringify(expectedBranches),
+        domain + ': oneOf должен перечислять все и только собственные типы');
+    } else {
+      const siblings = filesUnder(dirname(schemaFile)).filter(file => file.endsWith('.schema.yaml') && file !== schemaFile)
+        .map(file => ORIGIN + relative(framework, file).split(sep).join('/')).sort();
+      requireThat(JSON.stringify(definitions.map(({ id }) => id).sort()) === JSON.stringify(siblings),
+        domain + ': состав домена должен перечислять все схемы типов из каталога');
+    }
+    for (const { type, schema: definition, base, id } of definitions) {
       requireThat(!types.has(type), 'Повтор имени типа: ' + type);
       requireThat(definition.properties?.type?.const === type, 'Неоднозначный type: ' + type);
-      const validator = ajv.getSchema(domainSchema.$id + '#/$defs/' + type);
-      types.set(type, { domain, schema: definition, base: domainSchema.$id, validator });
+      const validator = ajv.getSchema(id);
+      types.set(type, { domain, schema: definition, base, validator });
     }
     profiles.set(domain, { config, schemaFile, schema: domainSchema });
   }
@@ -141,45 +160,189 @@ export function loadFramework(root = ROOT) {
       checkIds.add(check.id);
     }
   });
+  const state = { root, framework, schemas, ajv, manifest, types, profiles, validate };
   for (const [domain, { config, schema }] of profiles) {
     for (const source of config.on_change ?? []) {
       requireThat(profiles.has(source) && source !== domain, domain + ': некорректная подписка ' + source);
     }
     const agentFile = configPath(framework, manifestFile, config.agent);
     const agent = readYaml(agentFile);
-    requireThat(schemaIssues(validate('agent'), agent, agentFile).length === 0 && agent.domain === domain,
-      domain + ': неверный контракт агента');
-    const skillNames = new Set();
-    for (const skill of agent.skills) {
-      requireThat(!skillNames.has(skill.name), domain + ': повтор навыка ' + skill.name);
-      skillNames.add(skill.name);
-      const targetFile = configPath(framework, agentFile, skill.schema);
-      requireThat(readYaml(targetFile).$id === schema.$id, skill.name + ': схема результата относится к другому домену');
-      const target = new URL(skill.schema, ORIGIN + relative(framework, agentFile).split(sep).join('/')).href;
-      const resultValidator = ajv.getSchema(target);
-      requireThat(resultValidator, skill.name + ': неизвестная схема ' + target);
-      for (const example of skill.examples ?? []) {
-        const exampleFile = configPath(framework, agentFile, example);
-        const value = readYaml(exampleFile, true);
-        requireThat(resultValidator(value), skill.name + ': пример не соответствует схеме результата');
+    if (agent.format_version === '1') {
+      validateAgentPackageDefinition(state, agent, agentFile);
+    } else {
+      requireThat(schemaIssues(validate('agent'), agent, agentFile).length === 0 && agent.domain === domain,
+        domain + ': неверный контракт агента');
+      const skillNames = new Set();
+      for (const skill of agent.skills) {
+        requireThat(!skillNames.has(skill.name), domain + ': повтор навыка ' + skill.name);
+        skillNames.add(skill.name);
+        const targetFile = configPath(framework, agentFile, skill.schema);
+        requireThat(readYaml(targetFile).$id === schema.$id, skill.name + ': схема результата относится к другому домену');
+        const target = new URL(skill.schema, ORIGIN + relative(framework, agentFile).split(sep).join('/')).href;
+        const resultValidator = ajv.getSchema(target);
+        requireThat(resultValidator, skill.name + ': неизвестная схема ' + target);
+        for (const example of skill.examples ?? []) {
+          const exampleFile = configPath(framework, agentFile, example);
+          const value = readYaml(exampleFile, true);
+          requireThat(resultValidator(value), skill.name + ': пример не соответствует схеме результата');
+        }
       }
     }
-    const renderFile = configPath(framework, manifestFile, config.render);
-    const render = readYaml(renderFile);
-    requireThat(schemaIssues(validate('render'), render, renderFile).length === 0 && render.domain === domain,
-      domain + ': неверный контракт рендера');
-    requireThat(JSON.stringify(Object.keys(render.types).sort()) === JSON.stringify(Object.keys(schema.$defs).sort()),
-      domain + ': рендер должен перечислять типы домена');
-    for (const [type, view] of Object.entries(render.types)) {
-      const fields = new Set();
-      for (const field of view.fields) {
-        requireThat(field.field in schema.$defs[type].properties && !fields.has(field.field),
-          type + ': неверное или повторное поле рендера ' + field.field);
-        fields.add(field.field);
+    if (config.render) {
+      const renderFile = configPath(framework, manifestFile, config.render);
+      const render = readYaml(renderFile);
+      requireThat(schemaIssues(validate('render'), render, renderFile).length === 0 && render.domain === domain,
+        domain + ': неверный контракт рендера');
+      const domainTypes = [...types].filter(([_type, profile]) => profile.domain === domain).map(([type]) => type).sort();
+      requireThat(JSON.stringify(Object.keys(render.types).sort()) === JSON.stringify(domainTypes),
+        domain + ': рендер должен перечислять типы домена');
+      for (const [type, view] of Object.entries(render.types)) {
+        const fields = new Set();
+        for (const field of view.fields) {
+          requireThat(field.field in types.get(type).schema.properties && !fields.has(field.field),
+            type + ': неверное или повторное поле рендера ' + field.field);
+          fields.add(field.field);
+        }
       }
     }
   }
-  return { root, framework, schemas, ajv, manifest, types, profiles, validate };
+  return state;
+}
+
+/**
+ * Разрешает ссылку на зарегистрированную схему в фиксированном снимке Framework.
+ * Поддерживает только локальные URI и JSON Pointer; содержимое вне набора схем и
+ * сетевые загрузки не могут изменить проверку или текст, передаваемый агенту.
+ */
+function schemaTarget(framework, reference, base) {
+  const url = new URL(reference, base);
+  const schemaId = url.origin + url.pathname;
+  requireThat(schemaId.startsWith(ORIGIN) && !url.search, 'Ссылка на схему выходит за Framework: ' + url.href);
+  const root = framework.schemas.get(schemaId);
+  requireThat(root, 'Незарегистрированная схема: ' + url.href);
+  let target = root;
+  if (url.hash && url.hash !== '#') {
+    const pointer = decodeURIComponent(url.hash.slice(1));
+    requireThat(pointer.startsWith('/') && !/~(?![01])/.test(pointer), 'Ожидается JSON Pointer: ' + url.href);
+    for (const segment of pointer.slice(1).split('/')) {
+      target = target?.[segment.replace(/~1/g, '/').replace(/~0/g, '~')];
+    }
+  }
+  requireThat(target && typeof target === 'object', 'Неизвестное определение: ' + url.href);
+  return { id: url.href, schema: target, base: schemaId };
+}
+
+/**
+ * Превращает относительный путь автора в URI схемы, не позволяя выйти за Framework.
+ * Проверка реального пути исключает symlink за пределы снимка; фрагмент URI затем
+ * разрешается по тому же зарегистрированному объекту, что использует Ajv.
+ */
+function authoredSchemaTarget(framework, from, reference) {
+  const file = configPath(framework.framework, from, reference);
+  const schemaId = ORIGIN + relative(framework.framework, file).split(sep).join('/');
+  const hash = reference.includes('#') ? reference.slice(reference.indexOf('#')) : '';
+  return schemaTarget(framework, schemaId + hash, schemaId);
+}
+
+/**
+ * Строит замкнутый набор фрагментов схем из входа, выхода и навыков пакета.
+ * Каждый фрагмент хранится один раз по каноническому URI; текст для агента
+ * сериализуется непосредственно из тех же объектов, которые зарегистрированы в Ajv.
+ */
+function schemaContext(framework, roots) {
+  const fragments = new Map();
+  function include(reference, base) {
+    const target = schemaTarget(framework, reference, base);
+    if (fragments.has(target.id)) return;
+    fragments.set(target.id, target.schema);
+    visitObjects(target.schema, node => {
+      requireThat(!node.$anchor && !node.$dynamicAnchor && !node.$dynamicRef &&
+        (!node.$id || node === framework.schemas.get(target.base)),
+        'Контекст пакета поддерживает только локальные $ref с JSON Pointer: ' + target.id);
+      if (node.$ref) include(node.$ref, target.base);
+    });
+  }
+  for (const root of roots) include(root.id, root.base);
+  const entries = [...fragments].sort(([left], [right]) => left.localeCompare(right))
+    .map(([id, schema]) => ({ id, schema, text: stringify(schema).trimEnd() }));
+  return { fragments: entries, text: entries.map(entry => `${entry.id}\n${entry.text}`).join('\n\n') };
+}
+
+/**
+ * Проверяет определение пакета и его локальные зависимости без исполнения агента.
+ * Гейты остаются декларациями: здесь проверяются их типы и ссылки, но состояние
+ * задачи, Git-ветка и результат проверки Knowledge не моделируются.
+ */
+export function validateAgentPackageDefinition(framework, definition, agentFile) {
+  const source = realpathSync(agentFile);
+  const sourceRelative = relative(realpathSync(framework.framework), source);
+  requireThat(sourceRelative !== '..' && !sourceRelative.startsWith('..' + sep) && !isAbsolute(sourceRelative),
+    agentFile + ': источник пакета находится вне Framework');
+  const validator = framework.validate('agent-package');
+  const issues = schemaIssues(validator, definition, agentFile);
+  requireThat(issues.length === 0, agentFile + ': неверный контракт пакета: ' + JSON.stringify(issues));
+  requireThat(framework.profiles.has(definition.domain) && definition.id.startsWith(definition.domain + '.'),
+    agentFile + ': имя пакета не соответствует зарегистрированному домену');
+  const instructionsFile = configPath(framework.framework, agentFile, definition.instructions);
+  const instructions = readFileSync(instructionsFile, 'utf8');
+  requireThat(instructions.trim(), instructionsFile + ': пустая инструкция');
+  const roots = [];
+  const endpointValidators = {};
+  for (const endpoint of ['input', 'output']) {
+    const target = authoredSchemaTarget(framework, agentFile, definition[endpoint].schema);
+    const compiled = framework.ajv.getSchema(target.id);
+    requireThat(compiled, endpoint + ': схема не компилируется: ' + target.id);
+    roots.push(target);
+    endpointValidators[endpoint] = compiled;
+  }
+  const skillNames = new Set();
+  const skills = definition.skills.map(reference => {
+    const file = configPath(framework.framework, agentFile, reference);
+    requireThat(file.endsWith(sep + 'skill.yaml'), file + ': ожидается отдельный каталог с skill.yaml');
+    const skill = readYaml(file);
+    const skillIssues = schemaIssues(framework.validate('skill'), skill, file);
+    requireThat(skillIssues.length === 0, file + ': неверный контракт навыка: ' + JSON.stringify(skillIssues));
+    requireThat(!skillNames.has(skill.name), file + ': повтор навыка ' + skill.name);
+    skillNames.add(skill.name);
+    for (const schemaRef of skill.schemas) {
+      const target = authoredSchemaTarget(framework, file, schemaRef);
+      requireThat(framework.ajv.getSchema(target.id), file + ': схема не компилируется: ' + target.id);
+      roots.push(target);
+    }
+    for (const example of skill.examples ?? []) {
+      requireThat(skill.schemas.includes(example.schema), file + ': схема примера не объявлена в навыке');
+      const target = authoredSchemaTarget(framework, file, example.schema);
+      const exampleFile = configPath(framework.framework, file, example.file);
+      const exampleIssues = schemaIssues(framework.ajv.getSchema(target.id), readYaml(exampleFile), exampleFile);
+      requireThat(exampleIssues.length === 0, exampleFile + ': пример не соответствует схеме: ' + JSON.stringify(exampleIssues));
+    }
+    return { file, ...skill };
+  });
+  const gateSchemas = new Map();
+  const gateIds = new Set();
+  for (const gate of definition.gates) {
+    requireThat(!gateIds.has(gate.id), agentFile + ': повтор гейта ' + gate.id);
+    gateIds.add(gate.id);
+    for (const field of ['value', 'changeset', 'proposal', 'allowed']) {
+      if (gate[field]) requireThat(!/~(?![01])/.test(gate[field]), agentFile + ': неверный JSON Pointer гейта ' + gate.id);
+    }
+    if (gate.check === 'knowledge_revision_valid') {
+      const skill = skills.find(item => item.name === gate.skill);
+      requireThat(skill && skill.schemas.length === 1,
+        agentFile + ': гейт ' + gate.id + ' требует навык с одной схемой: ' + gate.skill);
+      const target = authoredSchemaTarget(framework, skill.file, skill.schemas[0]);
+      requireThat(target.base === framework.profiles.get(definition.domain).schema.$id,
+        agentFile + ': схема гейта ' + gate.id + ' должна принадлежать домену результата');
+      gateSchemas.set(gate.id, target);
+    }
+  }
+  return { definition, instructions, skills, gateSchemas,
+    schemaContext: schemaContext(framework, roots), validators: endpointValidators };
+}
+
+/** Читает один источник пакета и применяет к нему общий контракт и проверку ссылок. */
+export function loadAgentPackage(framework, agentFile) {
+  return validateAgentPackageDefinition(framework, readYaml(agentFile), agentFile);
 }
 
 /** Раскрывает локальный $ref в пределах зарегистрированных схем без сетевой загрузки. */
@@ -327,6 +490,23 @@ export function validateChangeSet(framework, records, change, revision, framewor
   return { ...validateDocuments(framework, next), records: next };
 }
 
+/**
+ * Извлекает значение структурированного результата по JSON Pointer гейта.
+ * Отсутствующее поле не считается успешной проверкой; текст указателя не может
+ * обращаться к произвольным файлам, сервисам или свойствам прототипа.
+ */
+function resultPointer(value, pointer) {
+  requireThat(typeof pointer === 'string' && pointer.startsWith('/') && !/~(?![01])/.test(pointer),
+    'Некорректный JSON Pointer гейта: ' + pointer);
+  for (const token of pointer.slice(1).split('/')) {
+    const key = token.replace(/~1/g, '/').replace(/~0/g, '~');
+    requireThat(value && typeof value === 'object' && Object.hasOwn(value, key),
+      'Поле результата для гейта отсутствует: ' + pointer);
+    value = value[key];
+  }
+  return value;
+}
+
 /** Проверяет локальные Markdown-ссылки, не обращаясь к сети и игнорируя примеры кода. */
 function checkMarkdownLinks(root) {
   const issues = [];
@@ -343,17 +523,35 @@ function checkMarkdownLinks(root) {
   return issues;
 }
 
-/** Запускает проверку контрактов и примера; выводит проверенные объёмы и явный отказ. */
+/** Запускает проверку контрактов и учебных документов; выводит проверенные объёмы и явный отказ. */
 export function checkRepository(root = ROOT) {
   const framework = loadFramework(root);
   const records = readExample(framework);
   const snapshot = validateDocuments(framework, records);
   const change = readYaml(resolve(framework.framework, 'examples/notification-service/changeset.yaml'));
   const proposal = validateChangeSet(framework, records, change, 'example-base', 'example-framework');
-  const issues = [...snapshot.issues, ...proposal.issues, ...checkMarkdownLinks(root)];
+  const sources = ['domains/product/agent', 'examples/compliance-check-agent-package'];
+  const packages = sources.map(name => {
+    const directory = resolve(framework.framework, name);
+    const source = loadAgentPackage(framework, resolve(directory, 'agent.yaml'));
+    if (name.startsWith('domains/')) return { source, issues: [] };
+    const input = readYaml(resolve(directory, 'input.yaml'));
+    const output = readYaml(resolve(directory, 'output.yaml'));
+    const issues = [
+      ...schemaIssues(source.validators.input, input, name + '/input.yaml'),
+      ...schemaIssues(source.validators.output, output, name + '/output.yaml'),
+    ];
+    for (const gate of source.definition.gates) {
+      for (const field of ['value', 'changeset', 'proposal']) if (gate[field]) resultPointer(output, gate[field]);
+      if (gate.allowed) resultPointer(input, gate.allowed);
+    }
+    return { source, input, output, issues };
+  });
+  const issues = [...snapshot.issues, ...proposal.issues, ...packages.flatMap(item => item.issues), ...checkMarkdownLinks(root)];
   requireThat(issues.length === 0, JSON.stringify(issues, null, 2));
   return { schemas: framework.schemas.size, domains: framework.profiles.size, types: framework.types.size,
-    documents: records.length, edges: snapshot.graph.edges.length, changesets: 1, markdownLinks: 'ok' };
+    documents: records.length, edges: snapshot.graph.edges.length, changesets: 1, agentPackages: packages.length,
+    schemaFragments: packages.reduce((count, item) => count + item.source.schemaContext.fragments.length, 0), markdownLinks: 'ok' };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

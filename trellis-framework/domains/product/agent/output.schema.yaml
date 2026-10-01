@@ -1,0 +1,24 @@
+# Выход указывает Git-ревизию; документы проверяются в её итоговом снимке.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/agent/output.schema.yaml
+title: "Предложение продуктовых документов"
+type: object
+additionalProperties: false
+required:
+  - proposal
+properties:
+  proposal:
+    type: object
+    additionalProperties: false
+    required:
+      - branch
+      - commit
+    properties:
+      branch:
+        type: string
+        pattern: "^refs/heads/[^\\s]+$"
+        description: "Опубликованная ветка предложения; разрешённость проверяет Knowledge."
+      commit:
+        type: string
+        pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$"
+        description: "Точный Git commit ветки предложения."

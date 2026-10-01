@@ -2,9 +2,8 @@
 format_version: "1"
 domains:
   product:
-    schema: domains/product/schema.yaml
-    agent: domains/product/agent.yaml
-    render: domains/product/render.yaml
+    schema: domains/product/schema/schema.yaml
+    agent: domains/product/agent/agent.yaml
   compliance:
     schema: domains/compliance/schema.yaml
     agent: domains/compliance/agent.yaml

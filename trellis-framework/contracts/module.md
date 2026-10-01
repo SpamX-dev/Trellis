@@ -8,9 +8,10 @@
 
 - [Документы](documents.md) — источник знаний, YAML-профиль и графовая проекция.
 - [Конфигурация](configuration.md) — состав домена, аннотации и фиксация версий.
+- [Пакет агента](agent-package.md) — ограниченная задача, YAML-навыки, схемы и машинные гейты.
 - [Изменения](changes.md) — подготовка, проверка, решение и применение.
 - [MCP](mcp.md) — сервисные операции поверх тех же контрактов.
-- JSON Schema конфигурации: [домены](domains.schema.yaml), [агент](agent.schema.yaml), [рендер](render.schema.yaml), [ChangeSet](changeset.schema.yaml).
+- JSON Schema конфигурации: [домены](domains.schema.yaml), [действующий агент домена](agent.schema.yaml), [пакет агента](agent-package.schema.yaml), [навык пакета](skill.schema.yaml), [рендер](render.schema.yaml), [ChangeSet](changeset.schema.yaml).
 - [Общие значения](common.schema.yaml) и [аннотации](annotations.schema.yaml).
 
 ## Границы

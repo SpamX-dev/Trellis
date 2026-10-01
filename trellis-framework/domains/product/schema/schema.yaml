@@ -1,0 +1,13 @@
+# Состав документов продуктового домена; определения типов находятся рядом.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/schema/schema.yaml
+title: "Документы продуктовых требований"
+oneOf:
+  - $ref: "product.schema.yaml"
+  - $ref: "actor.schema.yaml"
+  - $ref: "user-story.schema.yaml"
+  - $ref: "functional-requirement.schema.yaml"
+  - $ref: "non-functional-requirement.schema.yaml"
+  - $ref: "business-rule.schema.yaml"
+  - $ref: "business-process.schema.yaml"
+  - $ref: "business-object.schema.yaml"

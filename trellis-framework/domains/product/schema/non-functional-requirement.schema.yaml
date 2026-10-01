@@ -1,0 +1,95 @@
+# Схема документа non-functional-requirement; тип принадлежит продуктовому домену.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/schema/non-functional-requirement.schema.yaml
+type: object
+additionalProperties: false
+required:
+  - id
+  - type
+  - name
+  - product_ref
+  - kind
+  - statement
+  - measure
+  - target
+  - context
+properties:
+  id:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+  type:
+    const: non-functional-requirement
+  name:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое содержательное название документа."
+  summary:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое описание для чтения каталога и поиска."
+  group:
+    type: array
+    uniqueItems: true
+    description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+  sources:
+    type: array
+    minItems: 1
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/source"
+  gaps:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+      description: "Явно неизвестный факт или открытый вопрос."
+  product_ref:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+    description: "Продукт, к которому относятся знания."
+    x-trellis-ref:
+      targets:
+        - product
+      relation: describes-product
+  kind:
+    type: string
+    enum:
+      - performance
+      - reliability
+      - security
+      - usability
+      - maintainability
+      - compatibility
+      - other
+    description: "Область свойства."
+  statement:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Какое свойство требуется."
+  measure:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Как измеряют свойство."
+  target:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Целевое значение с единицами измерения, когда они применимы."
+  context:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Условия и область, для которых задано значение."
+description: "Измеримое свойство или ограничение продукта."
+x-trellis-checks:
+  -
+    id: nfr-measurable
+    severity: error
+    prompt: "Проверь, что мера, целевое значение и условия позволяют однозначно проверить свойство."

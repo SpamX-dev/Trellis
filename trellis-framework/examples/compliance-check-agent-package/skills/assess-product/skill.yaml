@@ -1,0 +1,12 @@
+# Одна процедура оценки продукта; схема результата является источником машинной проверки.
+name: assess-product
+instructions: |-
+  Сопоставь один продукт с каждым выбранным ограничением и его назначенными процедурами.
+  Прочитай существующие оценки, чтобы обновить ту же пару без создания дубликата.
+  Отдельно обоснуй применимость и выполнение; отсутствие подтверждений сохраняй как unknown.
+  Запиши ссылки на использованные документы, источники, пробелы и закреплённую базовую ревизию.
+schemas:
+  - ../../../../domains/compliance-check/schema.yaml#/$defs/compliance-assessment
+examples:
+  - file: ../../../notification-service/documents/compliance-check/compliance-assessment/CHECK-001.yaml
+    schema: ../../../../domains/compliance-check/schema.yaml#/$defs/compliance-assessment

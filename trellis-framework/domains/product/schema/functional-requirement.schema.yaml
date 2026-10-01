@@ -1,0 +1,123 @@
+# Схема документа functional-requirement; тип принадлежит продуктовому домену.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/schema/functional-requirement.schema.yaml
+type: object
+additionalProperties: false
+required:
+  - id
+  - type
+  - name
+  - product_ref
+  - statement
+  - acceptance_criteria
+properties:
+  id:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+  type:
+    const: functional-requirement
+  name:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое содержательное название документа."
+  summary:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое описание для чтения каталога и поиска."
+  group:
+    type: array
+    uniqueItems: true
+    description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+  sources:
+    type: array
+    minItems: 1
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/source"
+  gaps:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+      description: "Явно неизвестный факт или открытый вопрос."
+  product_ref:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+    description: "Продукт, к которому относятся знания."
+    x-trellis-ref:
+      targets:
+        - product
+      relation: describes-product
+  statement:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Одно проверяемое поведение продукта."
+  trigger:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Условие или событие, вызывающее поведение."
+  story_refs:
+    type: array
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+      description: "Пользовательские цели, обосновывающие требование."
+      x-trellis-ref:
+        targets:
+          - user-story
+        relation: based-on
+    uniqueItems: true
+    description: "Пользовательские цели, обосновывающие требование."
+  rule_refs:
+    type: array
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+      description: "Бизнес-правила поведения."
+      x-trellis-ref:
+        targets:
+          - business-rule
+        relation: governed-by
+    uniqueItems: true
+    description: "Бизнес-правила поведения."
+  object_refs:
+    type: array
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+      description: "Предметные объекты, с которыми работает поведение."
+      x-trellis-ref:
+        targets:
+          - business-object
+        relation: uses-data
+    uniqueItems: true
+    description: "Предметные объекты, с которыми работает поведение."
+  constraint_refs:
+    type: array
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+      description: "Измеримые ограничения поведения."
+      x-trellis-ref:
+        targets:
+          - non-functional-requirement
+        relation: constrained-by
+    uniqueItems: true
+    description: "Измеримые ограничения поведения."
+  acceptance_criteria:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+      description: "Наблюдаемое условие, по которому проверяют выполнение требования."
+description: "Наблюдаемое поведение продукта."
+x-trellis-checks:
+  -
+    id: fr-observable
+    severity: error
+    prompt: "Проверь наблюдаемость поведения и соответствие критериев приёмки формулировке; не считай наличие критерия доказательством реализации."

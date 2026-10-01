@@ -1,0 +1,24 @@
+# Результат указывает опубликованную Git-ревизию; ChangeSet выводится из её diff.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/examples/compliance-check-agent-package/output.schema.yaml
+title: "Предложение оценки комплаенса"
+type: object
+additionalProperties: false
+required:
+  - proposal
+properties:
+  proposal:
+    type: object
+    additionalProperties: false
+    required:
+      - branch
+      - commit
+    properties:
+      branch:
+        type: string
+        pattern: "^refs/heads/[^\\s]+$"
+        description: "Опубликованная ветка предложения; её разрешённость подтверждает Knowledge."
+      commit:
+        type: string
+        pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$"
+        description: "Точный опубликованный Git commit ветки."

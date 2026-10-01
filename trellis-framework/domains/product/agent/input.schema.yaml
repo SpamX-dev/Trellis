@@ -1,0 +1,52 @@
+# Вход задачи; текущих требований может не быть на первой итерации.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/agent/input.schema.yaml
+title: "Запрос на продуктовые требования"
+type: object
+additionalProperties: false
+required:
+  - request
+  - allowed_changes
+properties:
+  request:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Что требуется описать или уточнить в текущей итерации."
+  current_requirements:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+      pattern: "^product/(?:product|actor|user-story|functional-requirement|non-functional-requirement|business-rule|business-process|business-object)/(?:[a-z0-9-]+/)*[A-Za-z0-9][A-Za-z0-9._-]*\\.yaml$"
+    description: "Пути существующих документов на закреплённой ревизии; отсутствие или [] означает первую итерацию."
+  allowed_changes:
+    type: object
+    additionalProperties: false
+    required:
+      - paths
+      - prefixes
+    properties:
+      paths:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^product/(?:product|actor|user-story|functional-requirement|non-functional-requirement|business-rule|business-process|business-object)/(?:[a-z0-9-]+/)*[A-Za-z0-9][A-Za-z0-9._-]*\\.yaml$"
+        description: "Точные пути документов, которые можно изменить."
+      prefixes:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^product/(?:product|actor|user-story|functional-requirement|non-functional-requirement|business-rule|business-process|business-object)/(?:[a-z0-9-]+/)*$"
+        description: "Каталоги для новых документов; каждый префикс оканчивается /."
+    anyOf:
+      - properties:
+          paths:
+            type: array
+            minItems: 1
+      - properties:
+          prefixes:
+            type: array
+            minItems: 1

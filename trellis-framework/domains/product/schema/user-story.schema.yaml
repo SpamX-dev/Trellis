@@ -1,0 +1,79 @@
+# Схема документа user-story; тип принадлежит продуктовому домену.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/schema/user-story.schema.yaml
+type: object
+additionalProperties: false
+required:
+  - id
+  - type
+  - name
+  - product_ref
+  - actor_ref
+  - goal
+  - benefit
+properties:
+  id:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+  type:
+    const: user-story
+  name:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое содержательное название документа."
+  summary:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое описание для чтения каталога и поиска."
+  group:
+    type: array
+    uniqueItems: true
+    description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+  sources:
+    type: array
+    minItems: 1
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/source"
+  gaps:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+      description: "Явно неизвестный факт или открытый вопрос."
+  product_ref:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+    description: "Продукт, к которому относятся знания."
+    x-trellis-ref:
+      targets:
+        - product
+      relation: describes-product
+  actor_ref:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+    description: "Роль, от лица которой заявлена цель."
+    x-trellis-ref:
+      targets:
+        - actor
+      relation: performed-by
+  goal:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Чего хочет достичь роль."
+  benefit:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Для чего это нужно роли."
+description: "Цель и польза для роли пользователя."
+x-trellis-checks:
+  -
+    id: story-value
+    severity: error
+    prompt: "Проверь, что цель описывает потребность выбранной роли и содержит понятную пользу."

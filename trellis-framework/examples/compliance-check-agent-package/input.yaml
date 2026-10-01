@@ -1,0 +1,13 @@
+# Учебная область одной задачи; проект и базовые ревизии передаются отдельно.
+product_id: PRODUCT-001
+catalog_requirement_ids:
+  - COMP-001
+read_domains:
+  - product
+  - compliance
+  - compliance-check
+allowed_changes:
+  paths:
+    - compliance-check/compliance-assessment/CHECK-001.yaml
+  prefixes:
+    - compliance-check/compliance-assessment/new/

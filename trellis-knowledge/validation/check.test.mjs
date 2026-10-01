@@ -7,10 +7,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { ROOT, parseYaml, loadFramework, readExample, validateDocuments, validateChangeSet } from './check.mjs';
+import { ROOT, parseYaml, loadFramework, loadAgentPackage, validateAgentPackageDefinition,
+  readExample, validateDocuments, validateChangeSet } from './check.mjs';
 
 const framework = loadFramework();
 const baseline = readExample(framework);
+const agentFile = resolve(ROOT, 'trellis-framework/domains/product/agent/agent.yaml');
+const complianceAgentFile = resolve(ROOT, 'trellis-framework/examples/compliance-check-agent-package/agent.yaml');
 
 /** Возвращает независимую копию исходного снимка для одного сценария. */
 function snapshot() {
@@ -112,9 +115,9 @@ test('положительная оценка требует материало�
 });
 
 test('опечатка в пользовательской аннотации отклоняется строгой компиляцией', () => {
-  const schema = structuredClone(framework.profiles.get('product').schema);
-  schema.$id = 'https://trellis.local/framework/domains/product/invalid.schema.yaml';
-  schema.$defs.product.properties.purpose['x-trellis-typo'] = true;
+  const schema = structuredClone(framework.schemas.get('https://trellis.local/framework/domains/product/schema/product.schema.yaml'));
+  schema.$id = 'https://trellis.local/framework/domains/product/schema/invalid.schema.yaml';
+  schema.properties.purpose['x-trellis-typo'] = true;
   assert.throws(() => framework.ajv.compile(schema), /unknown keyword/);
 });
 
@@ -177,4 +180,116 @@ test('пример изменения не мутирует исходные д�
   assert.deepEqual(result.issues, []);
   assert.equal(document(result.records, 'NFR-001').target, 'Не более 3 секунд для 95% запросов.');
   assert.equal(document(baseline, 'NFR-001').target, 'Не более 5 секунд для 95% запросов.');
+});
+
+test('пакет собирает контекст из тех же схем, что использует валидатор', () => {
+  const agentPackage = loadAgentPackage(framework, agentFile);
+  const input = { request: 'Опиши новый продукт', current_requirements: [],
+    allowed_changes: { paths: [], prefixes: ['product/product/'] } };
+  const output = { proposal: { branch: 'refs/heads/proposals/product',
+    commit: '0123456789abcdef0123456789abcdef01234567' } };
+  assert.equal(agentPackage.validators.input(input), true);
+  const firstIteration = structuredClone(input);
+  delete firstIteration.current_requirements;
+  assert.equal(agentPackage.validators.input(firstIteration), true);
+  assert.equal(agentPackage.validators.output(output), true);
+  assert.equal(agentPackage.validators.input({ ...input, current_requirements: ['../outside.yaml'] }), false);
+  const abbreviatedCommit = structuredClone(output);
+  abbreviatedCommit.proposal.commit = '0123456';
+  assert.equal(agentPackage.validators.output(abbreviatedCommit), false);
+  assert.equal(agentPackage.skills.length, 1);
+  const fragments = new Map(agentPackage.schemaContext.fragments.map(entry => [entry.id, entry]));
+  const origin = 'https://trellis.local/framework/';
+  const outputId = origin + 'domains/product/agent/output.schema.yaml';
+  assert.strictEqual(fragments.get(outputId).schema, framework.schemas.get(outputId));
+  const domainSchemaId = origin + 'domains/product/schema/schema.yaml';
+  assert.ok(fragments.has(domainSchemaId));
+  for (const type of ['product', 'actor', 'user-story', 'functional-requirement', 'non-functional-requirement',
+    'business-rule', 'business-process', 'business-object']) {
+    assert.ok(fragments.has(origin + 'domains/product/schema/' + type + '.schema.yaml'));
+  }
+  assert.ok(fragments.has(origin + 'contracts/common.schema.yaml#/$defs/id'));
+  assert.strictEqual(agentPackage.gateSchemas.get('revision').schema, framework.schemas.get(domainSchemaId));
+  for (const record of baseline.filter(record => record.file.startsWith('product/'))) {
+    assert.equal(framework.ajv.getSchema(domainSchemaId)(record.data), true);
+  }
+  for (const fragment of fragments.values()) {
+    assert.deepEqual(parseYaml(fragment.text), fragment.schema);
+    assert.ok(agentPackage.schemaContext.text.includes(fragment.id + '\n' + fragment.text));
+  }
+  assert.equal(framework.manifest.domains.product.agent, 'domains/product/agent/agent.yaml');
+  assert.equal(Object.hasOwn(framework.manifest.domains.product, 'render'), false);
+});
+
+test('пакет отклоняет неизвестный гейт, повтор id и незарегистрированную схему', () => {
+  const original = parseYaml(readFileSync(agentFile, 'utf8'));
+  const unknownGate = structuredClone(original);
+  unknownGate.gates[0].check = 'arbitrary_expression';
+  assert.throws(() => validateAgentPackageDefinition(framework, unknownGate, agentFile), /неверный контракт пакета/);
+  const duplicateGate = structuredClone(original);
+  duplicateGate.gates[1].id = duplicateGate.gates[0].id;
+  assert.throws(() => validateAgentPackageDefinition(framework, duplicateGate, agentFile), /повтор гейта/);
+  const missingSchema = structuredClone(original);
+  missingSchema.output.schema = 'output.schema.yaml#/$defs/missing';
+  assert.throws(() => validateAgentPackageDefinition(framework, missingSchema, agentFile), /Неизвестное определение/);
+  const malformedPointer = structuredClone(original);
+  malformedPointer.gates[2].allowed = '/allowed_changes~9';
+  assert.throws(() => validateAgentPackageDefinition(framework, malformedPointer, agentFile), /неверный JSON Pointer/);
+});
+
+test('ссылки пакета не выходят из Framework и не загружаются из сети', () => {
+  const original = parseYaml(readFileSync(agentFile, 'utf8'));
+  const outside = structuredClone(original);
+  outside.input.schema = '../../../../package.json';
+  assert.throws(() => validateAgentPackageDefinition(framework, outside, agentFile), /Ссылка выходит за Framework/);
+  const remote = structuredClone(original);
+  remote.skills[0] = 'https://example.com/skill.yaml';
+  assert.throws(() => validateAgentPackageDefinition(framework, remote, agentFile));
+  const outputId = 'https://trellis.local/framework/domains/product/agent/output.schema.yaml';
+  const alteredSchemas = new Map(framework.schemas);
+  const alteredOutput = structuredClone(alteredSchemas.get(outputId));
+  alteredOutput.properties.proposal.$ref = 'https://example.com/proposal.schema.yaml';
+  alteredSchemas.set(outputId, alteredOutput);
+  assert.throws(() => validateAgentPackageDefinition({ ...framework, schemas: alteredSchemas }, original, agentFile),
+    /Ссылка на схему выходит за Framework/);
+});
+
+test('пакет compliance-check связывает Git-гейт с той же схемой, которую читает агент', () => {
+  const agentPackage = loadAgentPackage(framework, complianceAgentFile);
+  const directory = resolve(ROOT, 'trellis-framework/examples/compliance-check-agent-package');
+  const input = parseYaml(readFileSync(resolve(directory, 'input.yaml'), 'utf8'));
+  const output = parseYaml(readFileSync(resolve(directory, 'output.yaml'), 'utf8'));
+  assert.equal(agentPackage.validators.input(input), true);
+  assert.equal(agentPackage.validators.output(output), true);
+  assert.equal(agentPackage.skills.length, 1);
+  assert.equal(Object.hasOwn(output, 'changeset'), false);
+  const gateSchema = agentPackage.gateSchemas.get('revision');
+  const fragment = agentPackage.schemaContext.fragments.find(entry => entry.id === gateSchema.id);
+  assert.strictEqual(fragment.schema, gateSchema.schema);
+  assert.equal(framework.ajv.getSchema(gateSchema.id)(document(baseline, 'CHECK-001')), true);
+  assert.ok(agentPackage.schemaContext.text.includes(fragment.id + '\n' + fragment.text));
+  const forbiddenOutput = { ...output, changeset: {} };
+  assert.equal(agentPackage.validators.output(forbiddenOutput), false);
+  const forbiddenInput = structuredClone(input);
+  forbiddenInput.allowed_changes.prefixes = ['compliance-check/compliance-assessment-new/'];
+  assert.equal(agentPackage.validators.input(forbiddenInput), false);
+  forbiddenInput.allowed_changes.prefixes = ['compliance-check/compliance-assessment/new/'];
+  assert.equal(agentPackage.validators.input(forbiddenInput), true);
+  forbiddenInput.allowed_changes.paths = [];
+  forbiddenInput.allowed_changes.prefixes = ['../product/'];
+  assert.equal(agentPackage.validators.input(forbiddenInput), false);
+});
+
+test('Git-гейт пакета отклоняет отсутствующий навык и чужую доменную схему', () => {
+  const original = parseYaml(readFileSync(complianceAgentFile, 'utf8'));
+  const missing = structuredClone(original);
+  missing.gates[3].skill = 'missing';
+  assert.throws(() => validateAgentPackageDefinition(framework, missing, complianceAgentFile), /требует навык с одной схемой/);
+  const foreign = structuredClone(original);
+  foreign.skills[0] = '../../domains/product/agent/skills/capture-requirements/skill.yaml';
+  foreign.gates[3].skill = 'capture-requirements';
+  assert.throws(() => validateAgentPackageDefinition(framework, foreign, complianceAgentFile), /должна принадлежать домену результата/);
+  const unknown = structuredClone(original);
+  unknown.gates[2].check = 'knowledge_run_script';
+  assert.throws(() => validateAgentPackageDefinition(framework, unknown, complianceAgentFile), /неверный контракт пакета/);
 });

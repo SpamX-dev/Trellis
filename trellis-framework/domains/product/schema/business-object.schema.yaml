@@ -1,0 +1,98 @@
+# Схема документа business-object; тип принадлежит продуктовому домену.
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://trellis.local/framework/domains/product/schema/business-object.schema.yaml
+type: object
+additionalProperties: false
+required:
+  - id
+  - type
+  - name
+  - product_ref
+  - definition
+  - attributes
+properties:
+  id:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+  type:
+    const: business-object
+  name:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое содержательное название документа."
+  summary:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Краткое описание для чтения каталога и поиска."
+  group:
+    type: array
+    uniqueItems: true
+    description: "Имена смысловых групп для поиска и представления. Не являются ссылками на документы."
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+  sources:
+    type: array
+    minItems: 1
+    items:
+      $ref: "../../../contracts/common.schema.yaml#/$defs/source"
+  gaps:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      minLength: 1
+      pattern: "\\S"
+      description: "Явно неизвестный факт или открытый вопрос."
+  product_ref:
+    $ref: "../../../contracts/common.schema.yaml#/$defs/id"
+    description: "Продукт, к которому относятся знания."
+    x-trellis-ref:
+      targets:
+        - product
+      relation: describes-product
+  definition:
+    type: string
+    minLength: 1
+    pattern: "\\S"
+    description: "Смысл объекта в предметной области."
+  attributes:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - meaning
+        - value_type
+      properties:
+        name:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Имя атрибута."
+        meaning:
+          type: string
+          minLength: 1
+          pattern: "\\S"
+          description: "Смысл значения."
+        value_type:
+          type: string
+          enum:
+            - string
+            - number
+            - integer
+            - boolean
+            - date
+            - object
+            - array
+          description: "Предметный вид значения; не определяет физическую колонку БД."
+description: "Предметное понятие и его значимые атрибуты."
+x-trellis-checks:
+  -
+    id: object-meaning
+    severity: error
+    prompt: "Проверь, что объект и атрибуты объяснены в терминах продукта и не подменены схемой физического хранения."

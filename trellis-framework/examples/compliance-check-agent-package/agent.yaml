@@ -1,0 +1,30 @@
+# Учебный источник пакета; действующий domains.yaml на него не ссылается.
+format_version: "1"
+id: compliance-check.assess-product
+domain: compliance-check
+instructions: AGENTS.md
+executor:
+  adapter: codex-cli
+input:
+  schema: input.schema.yaml
+output:
+  schema: output.schema.yaml
+skills:
+  - skills/assess-product/skill.yaml
+gates:
+  - id: input
+    phase: before_run
+    check: input_schema
+  - id: output
+    phase: before_complete
+    check: output_schema
+  - id: changed-paths
+    phase: before_complete
+    check: knowledge_changed_paths_allowed
+    allowed: /allowed_changes
+    proposal: /proposal
+  - id: revision
+    phase: before_complete
+    check: knowledge_revision_valid
+    skill: assess-product
+    proposal: /proposal
