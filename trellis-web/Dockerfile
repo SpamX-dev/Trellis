@@ -1,6 +1,7 @@
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
+COPY trellis-framework/package.json ./trellis-framework/package.json
 RUN npm ci
 COPY trellis-web ./trellis-web
 RUN npm run build:web

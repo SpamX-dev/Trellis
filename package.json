@@ -2,16 +2,18 @@
   "name": "trellis-contracts",
   "private": true,
   "type": "module",
+  "workspaces": ["trellis-framework"],
   "description": "Контракты и первый серверный контур Trellis",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "check": "node trellis-knowledge/validation/check.mjs",
-    "test": "node --test trellis-knowledge/validation/check.test.mjs",
+    "check": "npm run check -w @trellis/framework && node tools/check-markdown-links.mjs",
+    "test": "npm run build:framework && npm run test -w @trellis/framework",
+    "build:framework": "npm run build -w @trellis/framework",
     "build:api": "tsc -p trellis-knowledge/tsconfig.json",
     "build:web": "tsc -p trellis-web/tsconfig.json && vite build --config trellis-web/vite.config.ts",
-    "build": "npm run build:api && npm run build:web",
+    "build": "npm run build:framework && npm run build:api && npm run build:web",
     "start:api": "node dist/trellis-knowledge/server/main.js",
     "dev:web": "vite --config trellis-web/vite.config.ts"
   },
@@ -22,7 +24,6 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
-    "ajv": "8.20.0",
     "typescript": "^5.9.3",
     "vite": "^8.3.1",
     "yaml": "2.9.1"

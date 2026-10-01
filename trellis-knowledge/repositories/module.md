@@ -19,7 +19,7 @@ Repositories управляет локальными Git-репозитория�
 
 [Projects](../projects/module.md) определяет доступ и состояние проекта; [Identity](../identity/module.md) подтверждает инициатора. Создание проекта завершается только после готовности репозитория. Архивный проект допускает чтение по действующим правам, но не публикацию, включая результаты ранее запущенных задач.
 
-Оркестратор Knowledge передаёт снимки в [Validation](../validation/module.md) и выполняет [контракт принятия](../../trellis-framework/contracts/changes.md). Repositories применяет разрешённую публикацию, а [Webhooks](../webhooks/module.md) доставляет зарегистрированные уведомления. [Runtime](../../trellis-runtime/module.md) получает разрешённые файловые снимки и рабочие копии через Knowledge.
+Оркестратор Knowledge передаёт снимки в [Validation](../validation/module.md) и координирует принятие. Repositories применяет разрешённую публикацию, а [Webhooks](../webhooks/module.md) доставляет зарегистрированные уведомления. [Runtime](../../trellis-runtime/module.md) получает разрешённые файловые снимки и рабочие копии через Knowledge.
 
 ## Ограничения
 
