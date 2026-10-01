@@ -1,8 +1,0 @@
-id: "ACTOR-001"
-type: actor
-name: "Получатель уведомлений"
-product_ref: PRODUCT-001
-responsibility: "Указывает свой email и подтверждает желание получать уведомления."
-sources:
-  -
-    location: "Учебное интервью в README примера, раздел «Исходные сведения»."
